@@ -1007,3 +1007,46 @@
 
   box-shadow: var(--shadow);
 }
+.practice-complete-card {
+  margin-top: 20px;
+  padding: 24px;
+
+  background: var(--surface);
+
+  border: 1px solid var(--border);
+  border-radius: var(--radius-large);
+}
+
+.practice-complete-header {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.practice-complete-header .completed-check {
+  margin: 0;
+  flex-shrink: 0;
+}
+
+.practice-complete-title {
+  margin: 0;
+
+  color: var(--navy);
+
+  font-size: 1.15rem;
+  font-weight: 800;
+}
+
+.practice-complete-text {
+  margin: 4px 0 0;
+
+  color: var(--muted);
+}
+
+.practice-another-button {
+  display: block;
+
+  width: fit-content;
+
+  margin: 32px auto 0;
+}

@@ -10,6 +10,7 @@ function PracticePage() {
     const [result, setResult] = useState(null)
     const [showHint, setShowHint] = useState(false)
     const answerInputRef = useRef(null)
+    const [nextDifficultyChoice, setNextDifficultyChoice] = useState('Same')
 
     const courses = [
         'Algebra I',
@@ -134,6 +135,39 @@ function PracticePage() {
 
         input.focus()
         input.setSelectionRange(newPosition, newPosition)
+        }
+
+        const getNextDifficulty = () => {
+            const levels = ['Easy', 'Medium', 'Hard']
+            const currentIndex = levels.indexOf(selectedDifficulty)
+
+            if (nextDifficultyChoice === 'Easier') {
+                return levels[Math.max(0, currentIndex - 1)]
+            }
+
+            if (nextDifficultyChoice === 'Harder') {
+                return levels[Math.min(levels.length - 1, currentIndex + 1)]
+            }
+
+            return selectedDifficulty
+        }
+
+        const practiceAnother = () => {
+            const nextDifficulty = getNextDifficulty()
+
+            const nextProblem = getProblem(
+                problems,
+                selectedCourse,
+                nextDifficulty,
+            )
+
+            setSelectedDifficulty(nextDifficulty)
+            setActiveProblem(nextProblem)
+
+            setAnswer('')
+            setResult(null)
+            setShowHint(false)
+            setNextDifficultyChoice('Same')
         }
 
   return (
@@ -335,18 +369,54 @@ function PracticePage() {
             )}
 
             {result === 'correct' && (
-                <div className="answer-feedback correct-feedback">
-                <div>
-                    <p className="feedback-title">
-                    Correct!
+                <div className="practice-complete-card">
+                    <div className="practice-complete-header">
+                    <div className="completed-check">✓</div>
+
+                    <div>
+                        <p className="practice-complete-title">
+                        Nice work!
+                        </p>
+
+                        <p className="practice-complete-text">
+                        Want to practice another?
+                        </p>
+                    </div>
+                    </div>
+
+                    <div className="next-difficulty">
+                    <p className="next-difficulty-label">
+                        How should the next one feel?
                     </p>
 
-                    <p className="feedback-text">
-                    Nice work.
-                    </p>
+                    <div className="difficulty-options">
+                        {['Easier', 'Same', 'Harder'].map((choice) => (
+                        <button
+                            key={choice}
+                            type="button"
+                            className={
+                            nextDifficultyChoice === choice
+                                ? 'selected'
+                                : ''
+                            }
+                            onClick={() => setNextDifficultyChoice(choice)}
+                        >
+                            {choice}
+                        </button>
+                        ))}
+                    </div>
+                    </div>
+
+                    <button
+                    type="button"
+                    className="primary-button practice-another-button"
+                    onClick={practiceAnother}
+                    >
+                    Practice Another →
+                    </button>
                 </div>
-                </div>
-            )}
+                )}
+
             </div>
         </div>
         )}
