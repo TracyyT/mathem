@@ -1,6 +1,31 @@
+import { useEffect, useState } from 'react'
 import { NavLink } from 'react-router-dom'
 
+import { getProgress } from '../../utils/progressStorage'
+
 function Sidebar() {
+    const [streak, setStreak] = useState(
+    () => getProgress().streak,
+    )
+
+    useEffect(() => {
+    const updateProgress = () => {
+        setStreak(getProgress().streak)
+    }
+
+    window.addEventListener(
+        'mathem-progress-updated',
+        updateProgress,
+    )
+
+    return () => {
+        window.removeEventListener(
+        'mathem-progress-updated',
+        updateProgress,
+        )
+    }
+    }, [])
+
   const navItems = [
     { name: 'Home', path: '/home' },
     { name: 'Today', path: '/today' },
@@ -32,7 +57,7 @@ function Sidebar() {
       <div className="sidebar-streak">
         <span>🔥</span>
         <div>
-          <strong>0</strong>
+          <strong>{streak}</strong>
           <p>current streak</p>
         </div>
       </div>

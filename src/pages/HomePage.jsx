@@ -1,4 +1,38 @@
+import { useEffect, useState } from 'react'
+
+import {
+  getProgress,
+  isTodayCompleted,
+} from '../utils/progressStorage'
+
 function HomePage() {
+    const [progress, setProgress] = useState(
+    () => getProgress(),
+    )
+
+    const [todayCompleted, setTodayCompleted] = useState(
+    () => isTodayCompleted(),
+    )
+
+    useEffect(() => {
+    const updateProgress = () => {
+        setProgress(getProgress())
+        setTodayCompleted(isTodayCompleted())
+    }
+
+    window.addEventListener(
+        'mathem-progress-updated',
+        updateProgress,
+    )
+
+    return () => {
+        window.removeEventListener(
+        'mathem-progress-updated',
+        updateProgress,
+        )
+    }
+    }, [])
+
   return (
     <section className="page">
       <div className="home-header">
@@ -11,19 +45,37 @@ function HomePage() {
         </div>
       </div>
 
-      <div className="today-card">
+        <div className="today-card">
         <div>
-          <p className="card-label">Today's MathEm</p>
-          <h2>Calculus I</h2>
-          <p className="card-meta">
-            Derivatives · Medium
-          </p>
+            <p className="card-label">
+            Today's MathEm
+            </p>
+
+            {todayCompleted ? (
+            <>
+                <h2>MathEm’d ✓</h2>
+
+                <p className="card-meta">
+                You completed today's practice.
+                </p>
+            </>
+            ) : (
+            <>
+                <h2>Calculus I</h2>
+
+                <p className="card-meta">
+                Derivatives · Medium
+                </p>
+            </>
+            )}
         </div>
 
-        <button className="primary-button home-start-button">
-          Start →
-        </button>
-      </div>
+        {!todayCompleted && (
+            <button className="primary-button home-start-button">
+            Start →
+            </button>
+        )}
+        </div>
 
       <div className="home-section">
         <div className="section-heading">
@@ -63,21 +115,27 @@ function HomePage() {
         </div>
 
         <div className="stats-grid">
-          <div className="stat-card">
-            <strong>4</strong>
-            <span>MathEms completed</span>
-          </div>
+            <div className="stat-card">
+                <strong>
+                {todayCompleted ? '✓' : '—'}
+                </strong>
 
-          <div className="stat-card">
-            <strong>83%</strong>
-            <span>Accuracy</span>
-          </div>
+                <span>Today's MathEm</span>
+            </div>
 
-          <div className="stat-card">
-            <strong>3</strong>
-            <span>Current streak</span>
-          </div>
-        </div>
+            <div className="stat-card">
+                <strong>{progress.streak}</strong>
+                <span>Current streak</span>
+            </div>
+
+            <div className="stat-card">
+                <strong>
+                {progress.nextDifficultyChoice}
+                </strong>
+
+                <span>Next challenge</span>
+            </div>
+            </div>
       </div>
     </section>
   )

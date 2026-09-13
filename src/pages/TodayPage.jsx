@@ -1,12 +1,20 @@
 import { useRef, useState } from 'react'
 import problems from '../data/problems'
 import getProblem from '../utils/getProblem'
+import {
+  getProgress,
+  saveProgress,
+  isTodayCompleted,
+  getTodayDateString,
+} from '../utils/progressStorage'
 
 function TodayPage() {
   const [answer, setAnswer] = useState('')
   const [result, setResult] = useState(null)
   const [showHint, setShowHint] = useState(false)
-  const [isCompleted, setIsCompleted] = useState(false)
+  const [isCompleted, setIsCompleted] = useState(
+    () => isTodayCompleted(),
+    )
   const [nextDifficultyChoice, setNextDifficultyChoice] = useState('Same')
 
   const answerInputRef = useRef(null)
@@ -42,6 +50,10 @@ function TodayPage() {
       setResult('wrong')
     }
   }
+
+  const [streak, setStreak] = useState(
+    () => getProgress().streak,
+    )
 
   const insertAtCursor = (value) => {
     const input = answerInputRef.current
@@ -146,15 +158,41 @@ function TodayPage() {
             </p>
 
             <div className="completed-summary">
-            <span>{problem.course}</span>
-            <span>•</span>
-            <span>{problem.topic}</span>
-            <span>•</span>
-            <span>{problem.difficulty}</span>
+                <span>{problem.course}</span>
+                <span>•</span>
+                <span>{problem.topic}</span>
+                <span>•</span>
+                <span>{problem.difficulty}</span>
+            </div>
+
+            <div className="completed-streak">
+                 🔥 {streak} day streak
             </div>
         </div>
         </section>
     )
+    }
+
+    const completeMathem = () => {
+    const currentProgress = getProgress()
+    const alreadyCompletedToday = isTodayCompleted()
+
+    const updatedStreak = alreadyCompletedToday
+        ? currentProgress.streak
+        : currentProgress.streak + 1
+
+    const updatedProgress = {
+        ...currentProgress,
+        streak: updatedStreak,
+        lastCompletedDate: getTodayDateString(),
+        nextDifficultyChoice,
+    }
+
+    saveProgress(updatedProgress)
+
+    setStreak(updatedStreak)
+    setIsCompleted(true)
+    setResult(null)
     }
 
   return (
@@ -351,10 +389,7 @@ function TodayPage() {
                 <button
                     type="button"
                     className="primary-button done-button"
-                    onClick={() => {
-                        setIsCompleted(true)
-                        setResult(null)
-                        }}
+                    onClick={completeMathem}
                     >
                     Done
                     </button>
