@@ -1,75 +1,89 @@
 # MathEm
 
-MathEm is a personalized math-practice app built around one idea:
+**One problem at a time, on your schedule.**
 
-> One problem at a time, on your schedule.
+MathEm is a personalized math-practice web app designed to make consistent practice simple, focused, and manageable.
 
-Instead of an endless problem bank, MathEm is designed to give users one focused math problem at a time based on their course, preferred difficulty, and practice schedule.
+**Live Demo:** https://tracyyt.github.io/mathem/
 
-## Current MVP Plan
+## About
 
-Initial courses:
-- Algebra I
-- Calculus I
-- Calculus II
+Instead of giving users long problem sets, MathEm focuses on one scheduled problem at a time while still allowing users to practice whenever they want.
 
-Planned core features:
-- Personalized course and difficulty preferences
-- One-problem-at-a-time practice
-- Retry and hint flow for incorrect answers
-- "MathEm'd!" completion reward
-- Streak and progress tracking
-- Adjustable next-problem difficulty
-- FastAPI backend
-- SymPy-based mathematical answer verification
-- AI-generated problems with deterministic verification
+Users can choose their math course, challenge level, and practice schedule. MathEm then provides a problem on scheduled practice days and lets users decide whether their next problem should be easier, the same, or harder.
+
+## Current Features
+
+- Algebra I, Calculus I, and Calculus II practice
+- Easy, Medium, and Hard challenge levels
+- Custom practice schedules
+  - Daily
+  - 3x per week
+  - Weekly
+- User-selected practice days
+- Scheduled Today's MathEm
+- Separate unlimited Practice mode
+- Custom math input keyboard
+- Answer checking and hints
+- Easier / Same / Harder preference after completion
+- Daily completion tracking
+- Local streak tracking
+- Persistent preferences and progress using localStorage
+- Progress and settings overview
+
+## How It Works
+
+### Today
+
+The Today page checks the user's practice schedule and provides a MathEm when practice is scheduled for that day.
+
+After solving the problem, users can choose whether they want their next MathEm to feel:
+
+**Easier · Same · Harder**
+
+### Practice
+
+Practice mode lets users solve additional problems at any time without affecting their scheduled MathEm.
+
+Users can select a course and challenge level and continue practicing immediately after completing a problem.
 
 ## Tech Stack
 
-### Frontend
+**Frontend**
 - React
 - JavaScript
 - Vite
 - React Router
+- CSS
 
-### Backend — planned
+**Current Storage**
+- Browser localStorage
+
+**Planned Backend**
 - Python
 - FastAPI
-
-### Math Verification — planned
 - SymPy
 
-### AI — planned
-- LLM API
+## Future Development
 
-## Current Status
+MathEm is currently an early MVP. Planned features include:
 
-Phase 1 is in progress.
+- Larger math problem bank
+- AI-generated practice questions
+- SymPy-based mathematical answer verification
+- Adaptive difficulty
+- Schedule-based streak tracking
+- Completion history and accuracy
+- Topic mastery and practice trends
+- User accounts and cloud storage
+- Improved mobile experience
 
-Implemented so far:
-- React/Vite project setup
-- Initial MathEm visual system
-- Landing page
-- Basic routing
-- Placeholder pages for:
-  - Home
-  - Today
-  - Progress
-  - Settings
-  - About
+A future problem-generation pipeline will use AI to generate candidate math problems while independently verifying their mathematical correctness before presenting them to users.
 
-## Planned Build Order
+## Project Philosophy
 
-1. Project setup, structure, navigation, and visual system
-2. Course, difficulty, and frequency onboarding
-3. Static problem engine and answer UI
-4. MathEm'd reward, confetti, streak, and difficulty selection
-5. Basic progress tracking
-6. FastAPI and SymPy verification
-7. AI problem generation and verification pipeline
-8. One-question-at-a-time scheduling
-9. MVP polish
+> Math practice does not need to feel like another assignment.
 
-## Philosophy
+MathEm is designed around short, personalized, and consistent practice — one problem at a time.
 
-MathEm is meant to make math practice feel like a small, consistent habit instead of another homework assignment.
+**Ready to MathEm?**
