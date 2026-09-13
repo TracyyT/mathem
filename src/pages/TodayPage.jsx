@@ -7,6 +7,7 @@ import {
   isTodayCompleted,
   getTodayDateString,
 } from '../utils/progressStorage'
+import { getSettings } from '../utils/settingsStorage'
 
 function TodayPage() {
   const [answer, setAnswer] = useState('')
@@ -19,8 +20,10 @@ function TodayPage() {
 
   const answerInputRef = useRef(null)
 
-    const selectedCourse = 'Algebra I'
-    const selectedDifficulty = 'Easy'
+    const settings = getSettings()
+
+    const selectedCourse = settings.course
+    const selectedDifficulty = settings.difficulty
 
     const problem = getProblem(
         problems,

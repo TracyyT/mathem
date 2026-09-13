@@ -1065,3 +1065,60 @@
   font-size: 0.9rem;
   font-weight: 800;
 }
+
+.setting-editor {
+  margin-top: 18px;
+  padding: 20px;
+
+  background: var(--surface);
+
+  border: 1px solid var(--border);
+  border-radius: var(--radius-medium);
+}
+
+.setting-editor-label {
+  margin: 0 0 12px;
+
+  color: var(--navy);
+
+  font-weight: 700;
+}
+
+.setting-editor-options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.setting-editor-options button {
+  padding: 10px 14px;
+
+  background: var(--background);
+  color: var(--muted);
+
+  border: 1px solid var(--border);
+  border-radius: 12px;
+
+  font-weight: 700;
+}
+
+.setting-editor-options button:hover {
+  border-color: var(--blue);
+  color: var(--navy);
+}
+
+.setting-editor-options button.selected {
+  background: var(--light-blue);
+  color: var(--blue);
+  border-color: var(--blue);
+}
+
+.setting-editor-cancel {
+  margin-top: 14px;
+
+  border: none;
+  background: transparent;
+  color: var(--muted);
+
+  font-weight: 700;
+}

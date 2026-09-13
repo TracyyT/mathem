@@ -1,36 +1,71 @@
 import { useEffect, useState } from 'react'
+import {
+  getSettings,
+  saveSettings,
+} from '../utils/settingsStorage'
 
 import {
   getProgress,
   isTodayCompleted,
 } from '../utils/progressStorage'
 
+
 function HomePage() {
     const [progress, setProgress] = useState(
-    () => getProgress(),
+      () => getProgress(),
     )
+    const [editingSetting, setEditingSetting] = useState(null)
 
     const [todayCompleted, setTodayCompleted] = useState(
-    () => isTodayCompleted(),
+      () => isTodayCompleted(),
+    )
+
+    const updateSetting = (key, value) => {
+        const updatedSettings = {
+            ...settings,
+            [key]: value,
+        }
+
+        setSettings(updatedSettings)
+        saveSettings(updatedSettings)
+        setEditingSetting(null)
+    }
+
+    const [settings, setSettings] = useState(
+        () => getSettings(),
     )
 
     useEffect(() => {
-    const updateProgress = () => {
-        setProgress(getProgress())
-        setTodayCompleted(isTodayCompleted())
-    }
+        const updateProgress = () => {
+            setProgress(getProgress())
+            setTodayCompleted(isTodayCompleted())
+        }
 
-    window.addEventListener(
-        'mathem-progress-updated',
-        updateProgress,
-    )
+        const updateSettings = () => {
+            setSettings(getSettings())
+        }
 
-    return () => {
-        window.removeEventListener(
-        'mathem-progress-updated',
-        updateProgress,
+        window.addEventListener(
+            'mathem-progress-updated',
+            updateProgress,
         )
-    }
+
+        window.addEventListener(
+            'mathem-settings-updated',
+            updateSettings,
+        )
+
+        return () => {
+            window.removeEventListener(
+            'mathem-progress-updated',
+            updateProgress,
+            )
+
+            window.removeEventListener(
+            'mathem-settings-updated',
+            updateSettings,
+            )
+        }
     }, [])
 
   return (
@@ -61,11 +96,11 @@ function HomePage() {
             </>
             ) : (
             <>
-                <h2>Calculus I</h2>
+            <h2>{settings.course}</h2>
 
-                <p className="card-meta">
-                Derivatives · Medium
-                </p>
+            <p className="card-meta">
+                {settings.difficulty}
+             </p>
             </>
             )}
         </div>
@@ -81,29 +116,107 @@ function HomePage() {
         <div className="section-heading">
           <div>
             <p className="card-label">Your setup</p>
-            <h2>Your practice</h2>
+            <h2>Your next practice</h2>
           </div>
         </div>
 
         <div className="practice-grid">
           <div className="practice-card">
             <p className="practice-label">Course</p>
-            <h3>Calculus I</h3>
-            <button className="card-action">Change →</button>
+            <h3>{settings.course}</h3>
+            <button
+                className="card-action"
+                onClick={() => setEditingSetting('course')}
+                >
+                Change →
+             </button>
           </div>
 
           <div className="practice-card">
             <p className="practice-label">Challenge level</p>
-            <h3>Medium</h3>
-            <button className="card-action">Adjust →</button>
+            <h3>{settings.difficulty}</h3>
+            <button
+                className="card-action"
+                onClick={() => setEditingSetting('difficulty')}
+                >
+                Adjust →
+              </button>
           </div>
 
           <div className="practice-card">
             <p className="practice-label">Schedule</p>
-            <h3>3x per week</h3>
-            <button className="card-action">Adjust →</button>
+            <h3>{settings.schedule}</h3>
+            <button
+                className="card-action"
+                onClick={() => setEditingSetting('schedule')}
+                >
+                Adjust →
+              </button>
           </div>
         </div>
+
+        {editingSetting && (
+        <div className="setting-editor">
+            <p className="setting-editor-label">
+            {editingSetting === 'course' && 'Choose your course'}
+            {editingSetting === 'difficulty' && 'Choose your challenge level'}
+            {editingSetting === 'schedule' && 'Choose your schedule'}
+            </p>
+
+            <div className="setting-editor-options">
+            {editingSetting === 'course' &&
+                ['Algebra I', 'Calculus I', 'Calculus II'].map((option) => (
+                <button
+                    key={option}
+                    type="button"
+                    className={
+                    settings.course === option ? 'selected' : ''
+                    }
+                    onClick={() => updateSetting('course', option)}
+                >
+                    {option}
+                </button>
+                ))}
+
+            {editingSetting === 'difficulty' &&
+                ['Easy', 'Medium', 'Hard'].map((option) => (
+                <button
+                    key={option}
+                    type="button"
+                    className={
+                    settings.difficulty === option ? 'selected' : ''
+                    }
+                    onClick={() => updateSetting('difficulty', option)}
+                >
+                    {option}
+                </button>
+                ))}
+
+            {editingSetting === 'schedule' &&
+                ['Daily', '3x per week', 'Weekly'].map((option) => (
+                <button
+                    key={option}
+                    type="button"
+                    className={
+                    settings.schedule === option ? 'selected' : ''
+                    }
+                    onClick={() => updateSetting('schedule', option)}
+                >
+                    {option}
+                </button>
+                ))}
+            </div>
+
+            <button
+            type="button"
+            className="setting-editor-cancel"
+            onClick={() => setEditingSetting(null)}
+            >
+            Cancel
+            </button>
+        </div>
+        )}
+
       </div>
 
       <div className="home-section">
