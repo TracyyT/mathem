@@ -1,36 +1,70 @@
 import { useRef, useState } from 'react'
+import problems from '../data/problems'
+import getProblem from '../utils/getProblem'
 
 function TodayPage() {
-    
   const [answer, setAnswer] = useState('')
-  const [showHint, setShowHint] = useState(false)
   const [result, setResult] = useState(null)
-  const answerInputRef = useRef(null)
-  
-  const insertAtCursor = (value) => {
-  const input = answerInputRef.current
+  const [showHint, setShowHint] = useState(false)
 
-  if (!input) return
+  const answerInputRef = useRef(null)
+
+    const selectedCourse = 'Calculus I'
+    const selectedDifficulty = 'Medium'
+
+    const problem = getProblem(
+        problems,
+        selectedCourse,
+        selectedDifficulty,
+    )
+
+  const normalizeAnswer = (value) => {
+    return value
+      .toLowerCase()
+      .replaceAll(' ', '')
+      .replaceAll('²', '^2')
+      .replaceAll('*', '')
+      .replaceAll('×', '')
+  }
+
+  const checkAnswer = () => {
+    const normalizedAnswer = normalizeAnswer(answer)
+
+    const acceptedAnswers =
+      problem.acceptedAnswers.map(normalizeAnswer)
+
+    if (acceptedAnswers.includes(normalizedAnswer)) {
+      setResult('correct')
+      setShowHint(false)
+    } else {
+      setResult('wrong')
+    }
+  }
+
+  const insertAtCursor = (value) => {
+    const input = answerInputRef.current
+
+    if (!input) return
 
     const start = input.selectionStart
     const end = input.selectionEnd
 
     const updatedAnswer =
-        answer.slice(0, start) +
-        value +
-        answer.slice(end)
+      answer.slice(0, start) +
+      value +
+      answer.slice(end)
 
     setAnswer(updatedAnswer)
 
     requestAnimationFrame(() => {
-        const newPosition = start + value.length
+      const newPosition = start + value.length
 
-        input.focus()
-        input.setSelectionRange(newPosition, newPosition)
+      input.focus()
+      input.setSelectionRange(newPosition, newPosition)
     })
-    }
+  }
 
-    const deleteAtCursor = () => {
+  const deleteAtCursor = () => {
     const input = answerInputRef.current
 
     if (!input) return
@@ -39,35 +73,35 @@ function TodayPage() {
     const end = input.selectionEnd
 
     if (start !== end) {
-        const updatedAnswer =
+      const updatedAnswer =
         answer.slice(0, start) +
         answer.slice(end)
 
-        setAnswer(updatedAnswer)
+      setAnswer(updatedAnswer)
 
-        requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
         input.focus()
         input.setSelectionRange(start, start)
-        })
+      })
 
-        return
+      return
     }
 
-  if (start === 0) return
+    if (start === 0) return
 
     const updatedAnswer =
-        answer.slice(0, start - 1) +
-        answer.slice(start)
+      answer.slice(0, start - 1) +
+      answer.slice(start)
 
     setAnswer(updatedAnswer)
 
     requestAnimationFrame(() => {
-        input.focus()
-        input.setSelectionRange(start - 1, start - 1)
+      input.focus()
+      input.setSelectionRange(start - 1, start - 1)
     })
-    }
+  }
 
-    const moveCursor = (direction) => {
+  const moveCursor = (direction) => {
     const input = answerInputRef.current
 
     if (!input) return
@@ -75,180 +109,189 @@ function TodayPage() {
     const position = input.selectionStart
 
     const newPosition =
-        direction === 'left'
+      direction === 'left'
         ? Math.max(0, position - 1)
         : Math.min(answer.length, position + 1)
 
     input.focus()
     input.setSelectionRange(newPosition, newPosition)
+  }
+
+  if (!problem) {
+    return (
+        <section className="page">
+        <p className="page-eyebrow">Today</p>
+        <h1>No MathEm available.</h1>
+        <p className="page-description">
+            We couldn't find a problem matching your current practice settings.
+        </p>
+        </section>
+      )
     }
-
-    const checkAnswer = () => {
-        const normalizedAnswer = answer
-            .toLowerCase()
-            .replaceAll(' ', '')
-            .replaceAll('²', '^2')
-            .replaceAll('*', '')
-            .replaceAll('×', '')
-
-        const acceptedAnswers = [
-            '3x^2+8x-2',
-            '8x+3x^2-2',
-            '3x^2-2+8x',
-        ]
-
-        if (acceptedAnswers.includes(normalizedAnswer)) {
-            setResult('correct')
-        } else {
-            setResult('wrong')
-        }
-        }
 
   return (
     <section className="page">
       <div className="problem-header">
         <div>
           <p className="page-eyebrow">Today</p>
+
           <h1>Your MathEm is ready.</h1>
+
           <p className="page-description">
             Take your time. One problem is enough.
           </p>
         </div>
 
-        <span className="difficulty-badge">Medium</span>
+        <span className="difficulty-badge">
+          {problem.difficulty}
+        </span>
       </div>
 
       <div className="problem-card">
         <div className="problem-meta">
-          <span>Calculus I</span>
+          <span>{problem.course}</span>
           <span>•</span>
-          <span>Derivatives</span>
+          <span>{problem.topic}</span>
         </div>
 
         <div className="problem-content">
-          <p className="problem-label">Solve</p>
+          <p className="problem-label">
+            {problem.prompt}
+          </p>
 
-          <h2>
-            Find <span className="math-text">f′(x)</span> if
-            <span className="math-text"> f(x) = x³ + 4x² - 2x + 7</span>.
+          <h2 className="math-text">
+            {problem.expression}
           </h2>
         </div>
 
         <div className="answer-section">
-          <label htmlFor="answer">Your answer</label>
+          <label htmlFor="answer">
+            Your answer
+          </label>
 
           <input
             ref={answerInputRef}
             id="answer"
             type="text"
             value={answer}
-            onChange={(event) => setAnswer(event.target.value)}
+            onChange={(event) => {
+              setAnswer(event.target.value)
+              setResult(null)
+              setShowHint(false)
+            }}
             placeholder="Enter your answer"
-            />
+          />
 
           <div className="math-keyboard">
             {[
-                '1', '2', '3', '4', '5',
-                '6', '7', '8', '9', '0',
-                'x', '+', '-', '×', '/',
-                '(', ')', '^', '√', 'π',
+              '1', '2', '3', '4', '5',
+              '6', '7', '8', '9', '0',
+              'x', '+', '-', '×', '/',
+              '(', ')', '^', '√', 'π',
             ].map((key) => (
-                <button
+              <button
                 key={key}
                 type="button"
                 onClick={() => insertAtCursor(key)}
-                >
+              >
                 {key}
-                </button>
+              </button>
             ))}
 
             <button
-                type="button"
-                className="keyboard-control"
-                onClick={() => moveCursor('left')}
+              type="button"
+              className="keyboard-control"
+              onClick={() => moveCursor('left')}
             >
-                ←
+              ←
             </button>
 
             <button
-                type="button"
-                className="keyboard-control"
-                onClick={() => moveCursor('right')}
+              type="button"
+              className="keyboard-control"
+              onClick={() => moveCursor('right')}
             >
-                →
+              →
             </button>
 
             <button
-                type="button"
-                className="keyboard-control delete-key"
-                onClick={deleteAtCursor}
+              type="button"
+              className="keyboard-control delete-key"
+              onClick={deleteAtCursor}
             >
-                Delete
+              Delete
             </button>
-            </div>
+          </div>
 
           <button
+            type="button"
             className="primary-button submit-answer"
             onClick={checkAnswer}
-            >
+          >
             Submit answer
-            </button>
-            {result === 'wrong' && (
-                <div className="answer-feedback wrong-feedback">
-                    <div>
-                    <p className="feedback-title">Not quite.</p>
-                    <p className="feedback-text">
-                        Give it another try, or use a hint if you need one.
+          </button>
+
+          {result === 'wrong' && (
+            <div className="answer-feedback wrong-feedback">
+              <div>
+                <p className="feedback-title">
+                  Not quite.
+                </p>
+
+                <p className="feedback-text">
+                  Give it another try, or use a hint if you need one.
+                </p>
+
+                {showHint && (
+                  <div className="hint-box">
+                    <p className="hint-label">
+                      Hint
                     </p>
 
-                    {showHint && (
-                        <div className="hint-box">
-                        <p className="hint-label">Hint</p>
-                        <p>
-                            Differentiate each term separately using the power rule:
-                            <span className="math-text"> d/dx(xⁿ) = nxⁿ⁻¹</span>.
-                        </p>
-                        </div>
-                    )}
-                    </div>
-
-                    <div className="feedback-actions">
-                    <button
-                        type="button"
-                        className="secondary-button"
-                        onClick={() => {
-                        setResult(null)
-                        setShowHint(false)
-                        answerInputRef.current?.focus()
-                        }}
-                    >
-                        Try Again
-                    </button>
-
-                    {!showHint && (
-                        <button
-                        type="button"
-                        className="secondary-button"
-                        onClick={() => setShowHint(true)}
-                        >
-                        Hint
-                        </button>
-                    )}
-                    </div>
-                </div>
+                    <p>{problem.hint}</p>
+                  </div>
                 )}
+              </div>
 
-             {result === 'correct' && (
-                <div className="answer-feedback correct-feedback">
-                    <div>
-                    <p className="feedback-title">Correct!</p>
-                    <p className="feedback-text">
-                        Nice work.
-                    </p>
-                    </div>
-                </div>
+              <div className="feedback-actions">
+                <button
+                  type="button"
+                  className="secondary-button"
+                  onClick={() => {
+                    setResult(null)
+                    setShowHint(false)
+                    answerInputRef.current?.focus()
+                  }}
+                >
+                  Try Again
+                </button>
+
+                {!showHint && (
+                  <button
+                    type="button"
+                    className="secondary-button"
+                    onClick={() => setShowHint(true)}
+                  >
+                    Hint
+                  </button>
                 )}
+              </div>
+            </div>
+          )}
 
+          {result === 'correct' && (
+            <div className="answer-feedback correct-feedback">
+              <div>
+                <p className="feedback-title">
+                  Correct!
+                </p>
+
+                <p className="feedback-text">
+                  Nice work.
+                </p>
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </section>
