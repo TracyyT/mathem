@@ -8,6 +8,7 @@ import {
   getTodayDateString,
 } from '../utils/progressStorage'
 import { getSettings } from '../utils/settingsStorage'
+import { isScheduledForToday } from '../utils/scheduleUtils'
 
 function TodayPage() {
   const [answer, setAnswer] = useState('')
@@ -24,6 +25,7 @@ function TodayPage() {
 
     const selectedCourse = settings.course
     const selectedDifficulty = settings.difficulty
+    const scheduledToday = isScheduledForToday(settings)
 
     const problem = getProblem(
         problems,
@@ -175,6 +177,41 @@ function TodayPage() {
         </section>
     )
     }
+
+    if (!scheduledToday && !isCompleted) {
+        return (
+            <section className="page">
+            <p className="page-eyebrow">Today</p>
+
+            <div className="no-mathem-card">
+                <div className="no-mathem-icon">✓</div>
+
+                <h1>No MathEm scheduled today.</h1>
+
+                <p className="page-description">
+                You're all caught up. You can still practice anytime
+                from Practice.
+                </p>
+
+                <div className="no-mathem-schedule">
+                <span>{settings.schedule}</span>
+
+                {settings.schedule !== 'Daily' && (
+                    <>
+                    <span>•</span>
+
+                    <span>
+                        {settings.scheduleDays
+                        .map((day) => day.slice(0, 3))
+                        .join(' · ')}
+                    </span>
+                    </>
+                )}
+                </div>
+            </div>
+            </section>
+          )
+        }
 
     const completeMathem = () => {
     const currentProgress = getProgress()

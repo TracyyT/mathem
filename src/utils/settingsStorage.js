@@ -4,6 +4,7 @@ const defaultSettings = {
   course: 'Calculus I',
   difficulty: 'Medium',
   schedule: '3x per week',
+  scheduleDays: ['Monday', 'Wednesday', 'Friday'],
 }
 
 export function getSettings() {

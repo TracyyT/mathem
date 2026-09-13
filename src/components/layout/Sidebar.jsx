@@ -37,7 +37,13 @@ function Sidebar() {
   return (
     <aside className="sidebar">
       <div>
-        <p className="sidebar-brand">math'em</p>
+       <NavLink
+        to="/"
+        className="sidebar-brand"
+        aria-label="MathEm landing page"
+        >
+        math'em
+        </NavLink>
 
         <nav className="sidebar-nav">
           {navItems.map((item) => (
