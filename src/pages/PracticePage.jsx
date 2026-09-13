@@ -1,20 +1,140 @@
-import { useState } from 'react'
+import { useState, useRef } from 'react'
+import problems from '../data/problems'
+import getProblem from '../utils/getProblem'
 
 function PracticePage() {
-  const [selectedCourse, setSelectedCourse] = useState('Calculus I')
-  const [selectedDifficulty, setSelectedDifficulty] = useState('Medium')
+    const [selectedCourse, setSelectedCourse] = useState('Calculus I')
+    const [selectedDifficulty, setSelectedDifficulty] = useState('Medium')
+    const [activeProblem, setActiveProblem] = useState(null)
+    const [answer, setAnswer] = useState('')
+    const [result, setResult] = useState(null)
+    const [showHint, setShowHint] = useState(false)
+    const answerInputRef = useRef(null)
 
-  const courses = [
-    'Algebra I',
-    'Calculus I',
-    'Calculus II',
-  ]
+    const courses = [
+        'Algebra I',
+        'Calculus I',
+        'Calculus II',
+    ]
 
-  const difficulties = [
-    'Easy',
-    'Medium',
-    'Hard',
-  ]
+    const difficulties = [
+        'Easy',
+        'Medium',
+        'Hard',
+    ]
+
+    const startPractice = () => {
+        const problem = getProblem(
+            problems,
+            selectedCourse,
+            selectedDifficulty,
+        )
+
+        setActiveProblem(problem)
+        setAnswer('')
+        setResult(null)
+        setShowHint(false)
+        }
+
+        const normalizeAnswer = (value) => {
+        return value
+            .toLowerCase()
+            .replaceAll(' ', '')
+            .replaceAll('²', '^2')
+            .replaceAll('*', '')
+            .replaceAll('×', '')
+        }
+
+            const checkAnswer = () => {
+            if (!activeProblem) return
+
+            const normalizedAnswer = normalizeAnswer(answer)
+
+            const acceptedAnswers =
+                activeProblem.acceptedAnswers.map(normalizeAnswer)
+
+            if (acceptedAnswers.includes(normalizedAnswer)) {
+                setResult('correct')
+                setShowHint(false)
+            } else {
+                setResult('wrong')
+            }
+        }
+        const insertAtCursor = (value) => {
+        const input = answerInputRef.current
+        if (!input) return
+
+        const start = input.selectionStart
+        const end = input.selectionEnd
+
+        const updatedAnswer =
+            answer.slice(0, start) +
+            value +
+            answer.slice(end)
+
+        setAnswer(updatedAnswer)
+        setResult(null)
+
+        requestAnimationFrame(() => {
+            const newPosition = start + value.length
+
+            input.focus()
+            input.setSelectionRange(newPosition, newPosition)
+        })
+        }
+
+        const deleteAtCursor = () => {
+        const input = answerInputRef.current
+        if (!input) return
+
+        const start = input.selectionStart
+        const end = input.selectionEnd
+
+        if (start !== end) {
+            const updatedAnswer =
+            answer.slice(0, start) +
+            answer.slice(end)
+
+            setAnswer(updatedAnswer)
+            setResult(null)
+
+            requestAnimationFrame(() => {
+            input.focus()
+            input.setSelectionRange(start, start)
+            })
+
+            return
+        }
+
+        if (start === 0) return
+
+        const updatedAnswer =
+            answer.slice(0, start - 1) +
+            answer.slice(start)
+
+        setAnswer(updatedAnswer)
+        setResult(null)
+
+        requestAnimationFrame(() => {
+            input.focus()
+            input.setSelectionRange(start - 1, start - 1)
+        })
+        }
+
+        const moveCursor = (direction) => {
+        const input = answerInputRef.current
+        if (!input) return
+
+        const position = input.selectionStart
+
+        const newPosition =
+            direction === 'left'
+            ? Math.max(0, position - 1)
+            : Math.min(answer.length, position + 1)
+
+        input.focus()
+        input.setSelectionRange(newPosition, newPosition)
+        }
 
   return (
     <section className="page">
@@ -82,12 +202,155 @@ function PracticePage() {
         </div>
 
         <button
-          type="button"
-          className="primary-button practice-start-button"
-        >
-          Start Practice →
-        </button>
+            type="button"
+            className="primary-button practice-start-button"
+            onClick={startPractice}
+            >
+            Generate Practice →
+            </button>
+
       </div>
+
+        {activeProblem && (
+        <div className="practice-problem-card">
+            <div className="problem-meta">
+            <span>{activeProblem.course}</span>
+            <span>•</span>
+            <span>{activeProblem.topic}</span>
+            <span>•</span>
+            <span>{activeProblem.difficulty}</span>
+            </div>
+
+            <div className="problem-content">
+            <p className="problem-label">
+                {activeProblem.prompt}
+            </p>
+
+            <h2 className="math-text">
+                {activeProblem.expression}
+            </h2>
+            </div>
+
+            <div className="answer-section">
+            <label htmlFor="practice-answer">
+                Your answer
+            </label>
+
+            <input
+                ref={answerInputRef}
+                id="practice-answer"
+                type="text"
+                value={answer}
+                onChange={(event) => {
+                    setAnswer(event.target.value)
+                    setResult(null)
+                    setShowHint(false)
+                }}
+                placeholder="Enter your answer"
+                />
+            <div className="math-keyboard">
+            {[
+                '1', '2', '3', '4', '5',
+                '6', '7', '8', '9', '0',
+                'x', '+', '-', '×', '/',
+                '(', ')', '^', '√', 'π',
+                ',', 'Space',
+            ].map((key) => (
+                <button
+                key={key}
+                type="button"
+                onClick={() =>
+                    insertAtCursor(key === 'Space' ? ' ' : key)
+                }
+                >
+                {key}
+                </button>
+            ))}
+
+            <button
+                type="button"
+                className="keyboard-control"
+                onClick={() => moveCursor('left')}
+            >
+                ←
+            </button>
+
+            <button
+                type="button"
+                className="keyboard-control"
+                onClick={() => moveCursor('right')}
+            >
+                →
+            </button>
+
+            <button
+                type="button"
+                className="keyboard-control delete-key"
+                onClick={deleteAtCursor}
+            >
+                Delete
+            </button>
+            </div>
+
+            <button
+                type="button"
+                className="primary-button submit-answer"
+                onClick={checkAnswer}
+            >
+                Submit answer
+            </button>
+
+            {result === 'wrong' && (
+                <div className="answer-feedback wrong-feedback">
+                <div>
+                    <p className="feedback-title">
+                    Not quite.
+                    </p>
+
+                    <p className="feedback-text">
+                    Give it another try, or use a hint if you need one.
+                    </p>
+
+                    {showHint && (
+                    <div className="hint-box">
+                        <p className="hint-label">
+                        Hint
+                        </p>
+
+                        <p>{activeProblem.hint}</p>
+                    </div>
+                    )}
+                </div>
+
+                {!showHint && (
+                    <button
+                    type="button"
+                    className="secondary-button"
+                    onClick={() => setShowHint(true)}
+                    >
+                    Hint
+                    </button>
+                )}
+                </div>
+            )}
+
+            {result === 'correct' && (
+                <div className="answer-feedback correct-feedback">
+                <div>
+                    <p className="feedback-title">
+                    Correct!
+                    </p>
+
+                    <p className="feedback-text">
+                    Nice work.
+                    </p>
+                </div>
+                </div>
+            )}
+            </div>
+        </div>
+        )}
+
     </section>
   )
 }

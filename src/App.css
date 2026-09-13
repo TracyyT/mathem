@@ -581,7 +581,7 @@
 }
 
 .delete-key {
-  grid-column: span 2;
+  grid-column: auto;
 }
 .answer-feedback {
   margin-top: 18px;
@@ -993,4 +993,17 @@
   .practice-setup-card {
     padding: 24px;
   }
+}
+.practice-problem-card {
+  max-width: 760px;
+
+  margin-top: 28px;
+  padding: 32px;
+
+  background: var(--surface);
+
+  border: 1px solid var(--border);
+  border-radius: var(--radius-large);
+
+  box-shadow: var(--shadow);
 }
