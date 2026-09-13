@@ -3,82 +3,106 @@ import { useRef, useState } from 'react'
 function TodayPage() {
     
   const [answer, setAnswer] = useState('')
+  const [showHint, setShowHint] = useState(false)
+  const [result, setResult] = useState(null)
   const answerInputRef = useRef(null)
+  
   const insertAtCursor = (value) => {
   const input = answerInputRef.current
 
   if (!input) return
 
-  const start = input.selectionStart
-  const end = input.selectionEnd
+    const start = input.selectionStart
+    const end = input.selectionEnd
 
-  const updatedAnswer =
-    answer.slice(0, start) +
-    value +
-    answer.slice(end)
-
-  setAnswer(updatedAnswer)
-
-  requestAnimationFrame(() => {
-    const newPosition = start + value.length
-
-    input.focus()
-    input.setSelectionRange(newPosition, newPosition)
-  })
-}
-
-const deleteAtCursor = () => {
-  const input = answerInputRef.current
-
-  if (!input) return
-
-  const start = input.selectionStart
-  const end = input.selectionEnd
-
-  if (start !== end) {
     const updatedAnswer =
-      answer.slice(0, start) +
-      answer.slice(end)
+        answer.slice(0, start) +
+        value +
+        answer.slice(end)
 
     setAnswer(updatedAnswer)
 
     requestAnimationFrame(() => {
-      input.focus()
-      input.setSelectionRange(start, start)
-    })
+        const newPosition = start + value.length
 
-    return
-  }
+        input.focus()
+        input.setSelectionRange(newPosition, newPosition)
+    })
+    }
+
+    const deleteAtCursor = () => {
+    const input = answerInputRef.current
+
+    if (!input) return
+
+    const start = input.selectionStart
+    const end = input.selectionEnd
+
+    if (start !== end) {
+        const updatedAnswer =
+        answer.slice(0, start) +
+        answer.slice(end)
+
+        setAnswer(updatedAnswer)
+
+        requestAnimationFrame(() => {
+        input.focus()
+        input.setSelectionRange(start, start)
+        })
+
+        return
+    }
 
   if (start === 0) return
 
-  const updatedAnswer =
-    answer.slice(0, start - 1) +
-    answer.slice(start)
+    const updatedAnswer =
+        answer.slice(0, start - 1) +
+        answer.slice(start)
 
-  setAnswer(updatedAnswer)
+    setAnswer(updatedAnswer)
 
-  requestAnimationFrame(() => {
+    requestAnimationFrame(() => {
+        input.focus()
+        input.setSelectionRange(start - 1, start - 1)
+    })
+    }
+
+    const moveCursor = (direction) => {
+    const input = answerInputRef.current
+
+    if (!input) return
+
+    const position = input.selectionStart
+
+    const newPosition =
+        direction === 'left'
+        ? Math.max(0, position - 1)
+        : Math.min(answer.length, position + 1)
+
     input.focus()
-    input.setSelectionRange(start - 1, start - 1)
-  })
-}
+    input.setSelectionRange(newPosition, newPosition)
+    }
 
-const moveCursor = (direction) => {
-  const input = answerInputRef.current
+    const checkAnswer = () => {
+        const normalizedAnswer = answer
+            .toLowerCase()
+            .replaceAll(' ', '')
+            .replaceAll('²', '^2')
+            .replaceAll('*', '')
+            .replaceAll('×', '')
 
-  if (!input) return
+        const acceptedAnswers = [
+            '3x^2+8x-2',
+            '8x+3x^2-2',
+            '3x^2-2+8x',
+        ]
 
-  const position = input.selectionStart
-
-  const newPosition =
-    direction === 'left'
-      ? Math.max(0, position - 1)
-      : Math.min(answer.length, position + 1)
-
-  input.focus()
-  input.setSelectionRange(newPosition, newPosition)
-}
+        if (acceptedAnswers.includes(normalizedAnswer)) {
+            setResult('correct')
+        } else {
+            setResult('wrong')
+        }
+        }
 
   return (
     <section className="page">
@@ -163,9 +187,68 @@ const moveCursor = (direction) => {
             </button>
             </div>
 
-          <button className="primary-button submit-answer">
+          <button
+            className="primary-button submit-answer"
+            onClick={checkAnswer}
+            >
             Submit answer
-          </button>
+            </button>
+            {result === 'wrong' && (
+                <div className="answer-feedback wrong-feedback">
+                    <div>
+                    <p className="feedback-title">Not quite.</p>
+                    <p className="feedback-text">
+                        Give it another try, or use a hint if you need one.
+                    </p>
+
+                    {showHint && (
+                        <div className="hint-box">
+                        <p className="hint-label">Hint</p>
+                        <p>
+                            Differentiate each term separately using the power rule:
+                            <span className="math-text"> d/dx(xⁿ) = nxⁿ⁻¹</span>.
+                        </p>
+                        </div>
+                    )}
+                    </div>
+
+                    <div className="feedback-actions">
+                    <button
+                        type="button"
+                        className="secondary-button"
+                        onClick={() => {
+                        setResult(null)
+                        setShowHint(false)
+                        answerInputRef.current?.focus()
+                        }}
+                    >
+                        Try Again
+                    </button>
+
+                    {!showHint && (
+                        <button
+                        type="button"
+                        className="secondary-button"
+                        onClick={() => setShowHint(true)}
+                        >
+                        Hint
+                        </button>
+                    )}
+                    </div>
+                </div>
+                )}
+
+             {result === 'correct' && (
+                <div className="answer-feedback correct-feedback">
+                    <div>
+                    <p className="feedback-title">Correct!</p>
+                    <p className="feedback-text">
+                        Nice work.
+                    </p>
+                    </div>
+                </div>
+                )}
+
         </div>
       </div>
     </section>
