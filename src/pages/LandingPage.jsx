@@ -19,7 +19,7 @@ function LandingPage() {
           className="primary-button"
           onClick={() => navigate('/home')}
         >
-          Let's get started →
+          Let's get started
         </button>
 
         <button
