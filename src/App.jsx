@@ -8,6 +8,7 @@ import TodayPage from './pages/TodayPage'
 import ProgressPage from './pages/ProgressPage'
 import SettingsPage from './pages/SettingsPage'
 import AboutPage from './pages/AboutPage'
+import PracticePage from './pages/PracticePage'
 
 function App() {
   return (
@@ -20,6 +21,7 @@ function App() {
         <Route path="/today" element={<TodayPage />} />
         <Route path="/progress" element={<ProgressPage />} />
         <Route path="/settings" element={<SettingsPage />} />
+        <Route path="/practice" element={<PracticePage />} />
       </Route>
     </Routes>
   )

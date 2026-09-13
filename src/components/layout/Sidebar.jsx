@@ -4,6 +4,7 @@ function Sidebar() {
   const navItems = [
     { name: 'Home', path: '/home' },
     { name: 'Today', path: '/today' },
+    { name: 'Practice', path: '/practice' },
     { name: 'Progress', path: '/progress' },
     { name: 'Settings', path: '/settings' },
   ]

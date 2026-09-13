@@ -678,3 +678,319 @@
     flex-direction: column;
   }
 }
+
+/* =========================================================
+   MATHEM'D COMPLETION
+   ========================================================= */
+.mathemd-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  padding: 24px;
+
+  background: rgba(23, 37, 84, 0.18);
+  backdrop-filter: blur(1px);
+}
+
+.mathemd-card {
+  width: 100%;
+  max-width: 480px;
+
+  padding: 32px;
+
+  background: var(--surface);
+
+  border: 1px solid var(--border);
+  border-radius: var(--radius-large);
+
+  box-shadow:
+    0 24px 70px rgba(23, 37, 84, 0.18);
+}
+
+.mathemd-celebration {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+
+  text-align: center;
+}
+
+.mathemd-check {
+  width: 48px;
+  height: 48px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  margin-bottom: 12px;
+
+  background: var(--light-blue);
+  color: var(--blue);
+
+  border-radius: 50%;
+
+  font-size: 1.4rem;
+  font-weight: 800;
+}
+
+.mathemd-title {
+  margin: 0;
+
+  color: var(--navy);
+
+  font-size: 1.6rem;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+}
+
+.mathemd-message {
+  margin: 6px 0 0;
+
+  color: var(--muted);
+}
+
+.streak-earned {
+  margin-top: 14px;
+  padding: 8px 14px;
+
+  background: var(--background);
+  color: var(--navy);
+
+  border: 1px solid var(--border);
+  border-radius: 999px;
+
+  font-weight: 800;
+}
+
+.next-difficulty {
+  margin-top: 28px;
+  padding-top: 24px;
+
+  border-top: 1px solid var(--border);
+}
+
+.next-difficulty-label {
+  margin: 0 0 12px;
+
+  color: var(--navy);
+
+  font-weight: 700;
+  text-align: center;
+}
+
+.difficulty-options {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+}
+
+.difficulty-options button {
+  padding: 11px 14px;
+
+  background: var(--background);
+  color: var(--muted);
+
+  border: 1px solid var(--border);
+  border-radius: 12px;
+
+  font-weight: 700;
+
+  transition:
+    background 0.2s,
+    color 0.2s,
+    border-color 0.2s,
+    transform 0.2s;
+}
+
+.difficulty-options button:hover {
+  color: var(--navy);
+  border-color: var(--blue);
+  transform: translateY(-1px);
+}
+
+.difficulty-options button.selected {
+  background: var(--light-blue);
+  color: var(--blue);
+
+  border-color: var(--blue);
+}
+
+.done-button {
+  display: block;
+  width: fit-content;
+  min-width: 90px;
+
+  margin: 20px auto 0;
+
+  padding-left: 28px;
+  padding-right: 28px;
+}
+
+@media (max-width: 600px) {
+  .mathemd-card {
+    padding: 22px;
+  }
+
+  .difficulty-options {
+    grid-template-columns: 1fr;
+  }
+}
+
+.completed-card {
+  max-width: 720px;
+  margin-top: 28px;
+  padding: 40px;
+
+  text-align: center;
+
+  background: var(--surface);
+
+  border: 1px solid var(--border);
+  border-radius: var(--radius-large);
+
+  box-shadow: var(--shadow);
+}
+
+.completed-check {
+  width: 56px;
+  height: 56px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  margin: 0 auto 16px;
+
+  background: var(--light-blue);
+  color: var(--blue);
+
+  border-radius: 50%;
+
+  font-size: 1.5rem;
+  font-weight: 800;
+}
+
+.completed-card h1 {
+  font-size: 2rem;
+}
+
+.completed-summary {
+  margin-top: 22px;
+
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 8px;
+
+  color: var(--muted);
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+/* =========================================================
+   PRACTICE PAGE
+   ========================================================= */
+
+.practice-setup-card {
+  max-width: 760px;
+
+  margin-top: 32px;
+  padding: 32px;
+
+  background: var(--surface);
+
+  border: 1px solid var(--border);
+  border-radius: var(--radius-large);
+
+  box-shadow: var(--shadow);
+}
+
+.practice-option-section + .practice-option-section {
+  margin-top: 28px;
+}
+
+.practice-option-label {
+  margin: 0 0 12px;
+
+  color: var(--navy);
+
+  font-size: 0.95rem;
+  font-weight: 700;
+}
+
+.practice-choice-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+
+  gap: 10px;
+}
+
+.practice-choice {
+  padding: 14px 16px;
+
+  background: var(--background);
+  color: var(--muted);
+
+  border: 1px solid var(--border);
+  border-radius: 14px;
+
+  font-weight: 700;
+
+  transition:
+    background 0.2s,
+    color 0.2s,
+    border-color 0.2s,
+    transform 0.2s;
+}
+
+.practice-choice:hover {
+  color: var(--navy);
+
+  border-color: var(--blue);
+
+  transform: translateY(-1px);
+}
+
+.practice-choice.selected {
+  background: var(--light-blue);
+  color: var(--blue);
+
+  border-color: var(--blue);
+}
+
+.practice-selection-summary {
+  margin-top: 30px;
+
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+
+  color: var(--muted);
+
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.practice-start-button {
+  display: block;
+
+  width: fit-content;
+
+  margin: 20px auto 0;
+}
+
+@media (max-width: 700px) {
+  .practice-choice-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .practice-setup-card {
+    padding: 24px;
+  }
+}

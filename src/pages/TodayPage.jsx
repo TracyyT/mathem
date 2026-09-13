@@ -6,11 +6,13 @@ function TodayPage() {
   const [answer, setAnswer] = useState('')
   const [result, setResult] = useState(null)
   const [showHint, setShowHint] = useState(false)
+  const [isCompleted, setIsCompleted] = useState(false)
+  const [nextDifficultyChoice, setNextDifficultyChoice] = useState('Same')
 
   const answerInputRef = useRef(null)
 
     const selectedCourse = 'Algebra I'
-    const selectedDifficulty = 'Hard'
+    const selectedDifficulty = 'Easy'
 
     const problem = getProblem(
         problems,
@@ -127,6 +129,32 @@ function TodayPage() {
         </p>
         </section>
       )
+    }
+
+    if (isCompleted) {
+    return (
+        <section className="page">
+        <p className="page-eyebrow">Today</p>
+
+        <div className="completed-card">
+            <div className="completed-check">✓</div>
+
+            <h1>MathEm’d for today.</h1>
+
+            <p className="page-description">
+            Nice work. Your next MathEm will follow your practice schedule.
+            </p>
+
+            <div className="completed-summary">
+            <span>{problem.course}</span>
+            <span>•</span>
+            <span>{problem.topic}</span>
+            <span>•</span>
+            <span>{problem.difficulty}</span>
+            </div>
+        </div>
+        </section>
+    )
     }
 
   return (
@@ -280,19 +308,61 @@ function TodayPage() {
             </div>
           )}
 
-          {result === 'correct' && (
-            <div className="answer-feedback correct-feedback">
-              <div>
-                <p className="feedback-title">
-                  Correct!
+         {result === 'correct' && (
+            <div className="mathemd-overlay">
+                <div className="mathemd-card">
+                <div className="mathemd-celebration">
+                <div className="mathemd-check">✓</div>
+
+                <p className="mathemd-title">MathEm’d!</p>
+
+                <p className="mathemd-message">
+                    You got it right.
                 </p>
 
-                <p className="feedback-text">
-                  Nice work.
+                <div className="streak-earned">
+                    +1 🔥
+                </div>
+                </div>
+
+                <div className="next-difficulty">
+                <p className="next-difficulty-label">
+                    How should the next MathEm feel?
                 </p>
+
+                <div className="difficulty-options">
+                {['Easier', 'Same', 'Harder'].map((choice) => (
+                    <button
+                    key={choice}
+                    type="button"
+                    className={
+                        nextDifficultyChoice === choice
+                        ? 'selected'
+                        : ''
+                    }
+                    onClick={() => setNextDifficultyChoice(choice)}
+                    >
+                    {choice}
+                    </button>
+                ))}
+                </div>
+                </div>
+
+                <button
+                    type="button"
+                    className="primary-button done-button"
+                    onClick={() => {
+                        setIsCompleted(true)
+                        setResult(null)
+                        }}
+                    >
+                    Done
+                    </button>
+
               </div>
             </div>
-          )}
+            )}
+
         </div>
       </div>
     </section>
