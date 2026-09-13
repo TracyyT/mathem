@@ -581,7 +581,7 @@
 }
 
 .delete-key {
-  grid-column: span 3;
+  grid-column: span 2;
 }
 .answer-feedback {
   margin-top: 18px;

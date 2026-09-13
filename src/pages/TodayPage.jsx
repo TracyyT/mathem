@@ -9,8 +9,8 @@ function TodayPage() {
 
   const answerInputRef = useRef(null)
 
-    const selectedCourse = 'Calculus I'
-    const selectedDifficulty = 'Medium'
+    const selectedCourse = 'Algebra I'
+    const selectedDifficulty = 'Hard'
 
     const problem = getProblem(
         problems,
@@ -184,44 +184,45 @@ function TodayPage() {
 
           <div className="math-keyboard">
             {[
-              '1', '2', '3', '4', '5',
-              '6', '7', '8', '9', '0',
-              'x', '+', '-', '×', '/',
-              '(', ')', '^', '√', 'π',
+                '1', '2', '3', '4', '5',
+                '6', '7', '8', '9', '0',
+                'x', '+', '-', '×', '/',
+                '(', ')', '^', '√', 'π',
+                ',',
             ].map((key) => (
-              <button
+                <button
                 key={key}
                 type="button"
                 onClick={() => insertAtCursor(key)}
-              >
+                >
                 {key}
-              </button>
+                </button>
             ))}
 
             <button
-              type="button"
-              className="keyboard-control"
-              onClick={() => moveCursor('left')}
+                type="button"
+                className="keyboard-control"
+                onClick={() => moveCursor('left')}
             >
-              ←
+                ←
             </button>
 
             <button
-              type="button"
-              className="keyboard-control"
-              onClick={() => moveCursor('right')}
+                type="button"
+                className="keyboard-control"
+                onClick={() => moveCursor('right')}
             >
-              →
+                →
             </button>
 
             <button
-              type="button"
-              className="keyboard-control delete-key"
-              onClick={deleteAtCursor}
+                type="button"
+                className="keyboard-control delete-key"
+                onClick={deleteAtCursor}
             >
-              Delete
+                Delete
             </button>
-          </div>
+            </div>
 
           <button
             type="button"
