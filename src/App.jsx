@@ -9,12 +9,15 @@ import ProgressPage from './pages/ProgressPage'
 import SettingsPage from './pages/SettingsPage'
 import AboutPage from './pages/AboutPage'
 import PracticePage from './pages/PracticePage'
+import SetupPage from './pages/SetupPage'
+
 
 function App() {
   return (
     <Routes>
       <Route path="/" element={<LandingPage />} />
       <Route path="/about" element={<AboutPage />} />
+      <Route path="/setup" element={<SetupPage />} />
 
       <Route element={<AppLayout />}>
         <Route path="/home" element={<HomePage />} />
@@ -22,6 +25,7 @@ function App() {
         <Route path="/progress" element={<ProgressPage />} />
         <Route path="/settings" element={<SettingsPage />} />
         <Route path="/practice" element={<PracticePage />} />
+        
       </Route>
     </Routes>
   )
