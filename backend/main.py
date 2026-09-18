@@ -34,12 +34,50 @@ transformations = (
     )
 )
 
+problem_bank = [
+    {
+        "id": 101,
+        "course": "Algebra I",
+        "topic": "Linear Equations",
+        "difficulty": "Easy",
+        "prompt": "Solve for x:",
+        "expression": "4x + 3 = 19",
+        "correct_answer": "4",
+        "answer_type": "expression",
+        "hint": "Subtract 3 from both sides, then divide by 4.",
+    },
+    {
+        "id": 102,
+        "course": "Calculus I",
+        "topic": "Derivatives",
+        "difficulty": "Medium",
+        "prompt": "Differentiate:",
+        "expression": "f(x) = 2x^3 + 5x^2 - 4x",
+        "correct_answer": "6x^2 + 10x - 4",
+        "answer_type": "expression",
+        "hint": "Differentiate each term using the power rule.",
+    },
+    {
+        "id": 103,
+        "course": "Calculus II",
+        "topic": "Integration",
+        "difficulty": "Medium",
+        "prompt": "Find the indefinite integral:",
+        "expression": "∫ 4x^3 dx",
+        "correct_answer": "x^4 + C",
+        "answer_type": "indefinite-integral",
+        "hint": "Increase the exponent by 1, then divide by the new exponent.",
+    },
+]
 
 class AnswerRequest(BaseModel):
     student_answer: str
     correct_answer: str
     answer_type: str = "expression"
 
+class ProblemRequest(BaseModel):
+    course: str
+    difficulty: str
 
 def parse_math(expression: str):
     expression = (
@@ -106,6 +144,23 @@ def root():
         "message": "MathEm API is running"
     }
 
+@app.post("/generate-problem")
+def generate_problem(request: ProblemRequest):
+    matching_problems = [
+        problem
+        for problem in problem_bank
+        if (
+            problem["course"] == request.course
+            and problem["difficulty"] == request.difficulty
+        )
+    ]
+
+    if not matching_problems:
+        return {
+            "error": "No matching problem found."
+        }
+
+    return matching_problems[0]
 
 @app.post("/check-answer")
 def check_answer(request: AnswerRequest):

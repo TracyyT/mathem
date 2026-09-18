@@ -1,7 +1,8 @@
 import { useState, useRef } from 'react'
-import problems from '../data/problems'
-import getProblem from '../utils/getProblem'
-import { checkMathAnswer } from '../services/mathApi'
+import {
+  checkMathAnswer,
+  generateProblem,
+} from '../services/mathApi'
 
 function PracticePage() {
     const [selectedCourse, setSelectedCourse] = useState('Calculus I')
@@ -14,6 +15,8 @@ function PracticePage() {
     const [nextDifficultyChoice, setNextDifficultyChoice] = useState('Same')
     const [isChecking, setIsChecking] = useState(false)
     const [checkError, setCheckError] = useState(null) 
+    const [isGenerating, setIsGenerating] = useState(false)
+    const [generateError, setGenerateError] = useState(null)
 
     const courses = [
         'Algebra I',
@@ -27,18 +30,34 @@ function PracticePage() {
         'Hard',
     ]
 
-    const startPractice = () => {
-        const problem = getProblem(
-            problems,
+        const startPractice = async () => {
+        setIsGenerating(true)
+        setGenerateError(null)
+
+        try {
+            const problem = await generateProblem(
             selectedCourse,
             selectedDifficulty,
-        )
+            )
 
-        setActiveProblem(problem)
-        setAnswer('')
-        setResult(null)
-        setShowHint(false)
-        setCheckError(null)
+            setActiveProblem(problem)
+            setAnswer('')
+            setResult(null)
+            setShowHint(false)
+            setCheckError(null)
+        } catch (error) {
+            console.error(
+            'Could not generate problem:',
+            error,
+            )
+
+            setActiveProblem(null)
+            setGenerateError(
+            'Could not generate a practice problem right now. Please try again.',
+            )
+        } finally {
+            setIsGenerating(false)
+        }
         }
 
         const checkAnswer = async () => {
@@ -182,13 +201,16 @@ function PracticePage() {
             return selectedDifficulty
         }
 
-        const practiceAnother = () => {
-            const nextDifficulty = getNextDifficulty()
+        const practiceAnother = async () => {
+        const nextDifficulty = getNextDifficulty()
 
-            const nextProblem = getProblem(
-                problems,
-                selectedCourse,
-                nextDifficulty,
+        setIsGenerating(true)
+        setGenerateError(null)
+
+        try {
+            const nextProblem = await generateProblem(
+            selectedCourse,
+            nextDifficulty,
             )
 
             setSelectedDifficulty(nextDifficulty)
@@ -199,6 +221,18 @@ function PracticePage() {
             setShowHint(false)
             setCheckError(null)
             setNextDifficultyChoice('Same')
+        } catch (error) {
+            console.error(
+            'Could not generate problem:',
+            error,
+            )
+
+            setGenerateError(
+            'Could not generate another practice problem right now. Please try again.',
+            )
+        } finally {
+            setIsGenerating(false)
+        }
         }
 
   return (
@@ -267,12 +301,20 @@ function PracticePage() {
         </div>
 
         <button
-            type="button"
-            className="primary-button practice-start-button"
-            onClick={startPractice}
-            >
-            Generate Practice →
-            </button>
+        type="button"
+        className="primary-button practice-start-button"
+        onClick={startPractice}
+        disabled={isGenerating}
+        >
+        {isGenerating
+            ? 'Generating...'
+            : 'Generate Practice →'}
+        </button>
+        {generateError && (
+            <p className="answer-error">
+                {generateError}
+            </p>
+        )}
 
       </div>
 
@@ -452,9 +494,17 @@ function PracticePage() {
                     type="button"
                     className="primary-button practice-another-button"
                     onClick={practiceAnother}
+                    disabled={isGenerating}
                     >
-                    Practice Another →
+                    {isGenerating
+                        ? 'Generating...'
+                        : 'Practice Another →'}
                     </button>
+                    {generateError && (
+                        <p className="answer-error">
+                            {generateError}
+                        </p>
+                    )}
                 </div>
                 )}
 
