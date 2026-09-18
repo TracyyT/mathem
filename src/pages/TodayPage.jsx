@@ -33,26 +33,41 @@ function TodayPage() {
         selectedDifficulty,
     )
 
-  const normalizeAnswer = (value) => {
-    return value
-      .toLowerCase()
-      .replaceAll(' ', '')
-      .replaceAll('²', '^2')
-      .replaceAll('*', '')
-      .replaceAll('×', '')
-  }
+  const checkAnswer = async () => {
+    if (!answer.trim()) {
+      return
+    }
 
-  const checkAnswer = () => {
-    const normalizedAnswer = normalizeAnswer(answer)
+    try {
+      const response = await fetch(
+        'http://127.0.0.1:8000/check-answer',
+        {
+          method: 'POST',
 
-    const acceptedAnswers =
-      problem.acceptedAnswers.map(normalizeAnswer)
+          headers: {
+            'Content-Type': 'application/json',
+          },
 
-    if (acceptedAnswers.includes(normalizedAnswer)) {
-      setResult('correct')
-      setShowHint(false)
-    } else {
-      setResult('wrong')
+          body: JSON.stringify({
+            student_answer: answer,
+            correct_answer: problem.correctAnswer,
+          }),
+        },
+      )
+
+      const data = await response.json()
+
+      if (data.correct) {
+        setResult('correct')
+        setShowHint(false)
+      } else {
+        setResult('wrong')
+      }
+    } catch (error) {
+      console.error(
+        'Could not check answer:',
+        error,
+      )
     }
   }
 
@@ -299,7 +314,11 @@ function TodayPage() {
                 <button
                 key={key}
                 type="button"
-                onClick={() => insertAtCursor(key)}
+                onClick={() =>
+                  insertAtCursor(
+                    key === 'Space' ? ' ' : key,
+                  )
+                }
                 >
                 {key}
                 </button>
