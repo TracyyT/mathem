@@ -79,6 +79,10 @@ class ProblemRequest(BaseModel):
     course: str
     difficulty: str
 
+class PracticeAnswerRequest(BaseModel):
+    problem_id: int
+    student_answer: str
+
 def parse_math(expression: str):
     expression = (
         expression
@@ -138,6 +142,13 @@ def check_indefinite_integral(
         ) == 0
     )
 
+def find_problem(problem_id: int):
+    for problem in problem_bank:
+        if problem["id"] == problem_id:
+            return problem
+
+    return None
+
 @app.get("/")
 def root():
     return {
@@ -160,7 +171,17 @@ def generate_problem(request: ProblemRequest):
             "error": "No matching problem found."
         }
 
-    return matching_problems[0]
+    problem = matching_problems[0]
+
+    return {
+        "id": problem["id"],
+        "course": problem["course"],
+        "topic": problem["topic"],
+        "difficulty": problem["difficulty"],
+        "prompt": problem["prompt"],
+        "expression": problem["expression"],
+        "hint": problem["hint"],
+    }
 
 @app.post("/check-answer")
 def check_answer(request: AnswerRequest):
@@ -193,6 +214,73 @@ def check_answer(request: AnswerRequest):
 
         correct = parse_math(
             request.correct_answer
+        )
+
+        is_correct = (
+            sp.simplify(student - correct) == 0
+        )
+
+        return {
+            "correct": bool(is_correct)
+        }
+
+    except Exception:
+        return {
+            "correct": False,
+            "error": "Could not understand the math expression."
+        }
+    
+@app.post("/check-practice-answer")
+def check_practice_answer(
+    request: PracticeAnswerRequest
+):
+    problem = find_problem(request.problem_id)
+
+    if not problem:
+        return {
+            "correct": False,
+            "error": "Problem not found."
+        }
+
+    try:
+        answer_type = problem.get(
+            "answer_type",
+            "expression",
+        )
+
+        correct_answer = problem[
+            "correct_answer"
+        ]
+
+        if answer_type == "solution-set":
+            student = parse_solution_set(
+                request.student_answer
+            )
+
+            correct = parse_solution_set(
+                correct_answer
+            )
+
+            return {
+                "correct": student == correct
+            }
+
+        if answer_type == "indefinite-integral":
+            is_correct = check_indefinite_integral(
+                request.student_answer,
+                correct_answer,
+            )
+
+            return {
+                "correct": bool(is_correct)
+            }
+
+        student = parse_math(
+            request.student_answer
+        )
+
+        correct = parse_math(
+            correct_answer
         )
 
         is_correct = (

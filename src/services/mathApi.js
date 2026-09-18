@@ -31,6 +31,35 @@ export async function checkMathAnswer(
   return response.json()
 }
 
+export async function checkPracticeAnswer(
+  problemId,
+  studentAnswer,
+) {
+  const response = await fetch(
+    `${API_URL}/check-practice-answer`,
+    {
+      method: 'POST',
+
+      headers: {
+        'Content-Type': 'application/json',
+      },
+
+      body: JSON.stringify({
+        problem_id: problemId,
+        student_answer: studentAnswer,
+      }),
+    },
+  )
+
+  if (!response.ok) {
+    throw new Error(
+      `Server returned ${response.status}`,
+    )
+  }
+
+  return response.json()
+}
+
 export async function generateProblem(
   course,
   difficulty,
@@ -70,8 +99,6 @@ export async function generateProblem(
     difficulty: data.difficulty,
     prompt: data.prompt,
     expression: data.expression,
-    correctAnswer: data.correct_answer,
-    answerType: data.answer_type,
     hint: data.hint,
   }
 }

@@ -1,6 +1,6 @@
 import { useState, useRef } from 'react'
 import {
-  checkMathAnswer,
+  checkPracticeAnswer,
   generateProblem,
 } from '../services/mathApi'
 
@@ -73,10 +73,9 @@ function PracticePage() {
             setCheckError(null)
 
             try {
-                const data = await checkMathAnswer(
-                    answer,
-                    activeProblem.correctAnswer,
-                    activeProblem.answerType || 'expression',
+                const data = await checkPracticeAnswer(
+                activeProblem.id,
+                answer,
                 )
 
                 if (data.error) {
