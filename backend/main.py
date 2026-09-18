@@ -75,6 +75,11 @@ problem_bank = [
         "correct_answer": "x^4 + C",
         "answer_type": "indefinite-integral",
         "hint": "Increase the exponent by 1, then divide by the new exponent.",
+        "verification": {
+            "operation": "indefinite-integral",
+            "integrand": "4*x^3",
+            "variable": "x",
+        },        
     },
     {
         "id": 104,
@@ -220,6 +225,9 @@ def verify_candidate_problem(problem):
             if operation == "definite-integral":
                 return verify_definite_integral_problem(problem)
             
+            if operation == "indefinite-integral":
+                return verify_indefinite_integral_problem(problem)
+                        
         answer_type = problem.get(
             "answer_type",
             "expression",
@@ -369,6 +377,59 @@ def verify_definite_integral_problem(problem):
     return (
         sp.simplify(
             expected_answer - claimed_answer
+        ) == 0
+    )
+
+def verify_indefinite_integral_problem(problem):
+    verification = problem.get("verification")
+
+    if not verification:
+        return False
+
+    if (
+        verification.get("operation")
+        != "indefinite-integral"
+    ):
+        return False
+
+    integrand = parse_math(
+        verification["integrand"]
+    )
+
+    variable = sp.Symbol(
+        verification.get("variable", "x")
+    )
+
+    expected_antiderivative = sp.integrate(
+        integrand,
+        variable,
+    )
+
+    claimed_answer = parse_math(
+        problem["correct_answer"]
+    )
+
+    claimed_constants = (
+        claimed_answer.free_symbols - {variable}
+    )
+
+    if not claimed_constants:
+        return False
+    
+    claimed_derivative = sp.diff(
+        claimed_answer,
+        variable,
+    )
+
+    expected_derivative = sp.diff(
+        expected_antiderivative,
+        variable,
+    )
+
+    return (
+        sp.simplify(
+            claimed_derivative
+            - expected_derivative
         ) == 0
     )
 
