@@ -109,6 +109,24 @@ problem_bank = [
             "variable": "x",
         },
     },
+    {
+        "id": 106,
+        "course": "Calculus II",
+        "topic": "Definite Integrals",
+        "difficulty": "Easy",
+        "prompt": "Evaluate:",
+        "expression": "∫₀² x dx",
+        "correct_answer": "2",
+        "answer_type": "expression",
+        "hint": "Find an antiderivative, then evaluate it at the upper and lower bounds.",
+        "verification": {
+            "operation": "definite-integral",
+            "integrand": "x",
+            "variable": "x",
+            "lower_bound": "0",
+            "upper_bound": "2",
+        },
+    },
 ]
 
 class AnswerRequest(BaseModel):
@@ -198,6 +216,9 @@ def verify_candidate_problem(problem):
             
             if operation == "solve-equation":
                 return verify_equation_problem(problem)
+            
+            if operation == "definite-integral":
+                return verify_definite_integral_problem(problem)
             
         answer_type = problem.get(
             "answer_type",
@@ -302,6 +323,53 @@ def verify_equation_problem(problem):
     return (
         expected_solutions
         == claimed_solutions
+    )
+
+def verify_definite_integral_problem(problem):
+    verification = problem.get("verification")
+
+    if not verification:
+        return False
+
+    if (
+        verification.get("operation")
+        != "definite-integral"
+    ):
+        return False
+
+    integrand = parse_math(
+        verification["integrand"]
+    )
+
+    variable = sp.Symbol(
+        verification.get("variable", "x")
+    )
+
+    lower_bound = parse_math(
+        verification["lower_bound"]
+    )
+
+    upper_bound = parse_math(
+        verification["upper_bound"]
+    )
+
+    expected_answer = sp.integrate(
+        integrand,
+        (
+            variable,
+            lower_bound,
+            upper_bound,
+        ),
+    )
+
+    claimed_answer = parse_math(
+        problem["correct_answer"]
+    )
+
+    return (
+        sp.simplify(
+            expected_answer - claimed_answer
+        ) == 0
     )
 
 @app.get("/")
