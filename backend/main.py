@@ -92,6 +92,23 @@ problem_bank = [
             "variable": "x",
         },
     },
+    {
+        "id": 105,
+        "course": "Algebra I",
+        "topic": "Quadratic Equations",
+        "difficulty": "Hard",
+        "prompt": "Solve for x:",
+        "expression": "x^2 - 5x + 6 = 0",
+        "correct_answer": "2,3",
+        "answer_type": "solution-set",
+        "hint": "Factor the quadratic, then set each factor equal to 0.",
+        "verification": {
+            "operation": "solve-equation",
+            "left_side": "x^2 - 5x + 6",
+            "right_side": "0",
+            "variable": "x",
+        },
+    },
 ]
 
 class AnswerRequest(BaseModel):
@@ -179,6 +196,9 @@ def verify_candidate_problem(problem):
             if operation == "derivative":
                 return verify_derivative_problem(problem)
             
+            if operation == "solve-equation":
+                return verify_equation_problem(problem)
+            
         answer_type = problem.get(
             "answer_type",
             "expression",
@@ -240,6 +260,48 @@ def verify_derivative_problem(problem):
         sp.simplify(
             expected_answer - claimed_answer
         ) == 0
+    )
+
+def verify_equation_problem(problem):
+    verification = problem.get("verification")
+
+    if not verification:
+        return False
+
+    if (
+        verification.get("operation")
+        != "solve-equation"
+    ):
+        return False
+
+    left_side = parse_math(
+        verification["left_side"]
+    )
+
+    right_side = parse_math(
+        verification["right_side"]
+    )
+
+    variable = sp.Symbol(
+        verification.get("variable", "x")
+    )
+
+    equation = sp.Eq(
+        left_side,
+        right_side,
+    )
+
+    expected_solutions = set(
+        sp.solve(equation, variable)
+    )
+
+    claimed_solutions = parse_solution_set(
+        problem["correct_answer"]
+    )
+
+    return (
+        expected_solutions
+        == claimed_solutions
     )
 
 @app.get("/")
