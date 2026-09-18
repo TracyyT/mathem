@@ -9,8 +9,7 @@ import {
 } from '../utils/progressStorage'
 import { getSettings } from '../utils/settingsStorage'
 import { isScheduledForToday } from '../utils/scheduleUtils'
-
-const API_URL = import.meta.env.VITE_API_URL
+import { checkMathAnswer } from '../services/mathApi'
 
 function TodayPage() {
   const [answer, setAnswer] = useState('')
@@ -46,31 +45,11 @@ function TodayPage() {
     setCheckError(null)
 
     try {
-      const response = await fetch(
-        `${API_URL}/check-answer`,
-        {
-          method: 'POST',
-
-          headers: {
-            'Content-Type': 'application/json',
-          },
-
-          body: JSON.stringify({
-            student_answer: answer,
-            correct_answer: problem.correctAnswer,
-            answer_type:
-              problem.answerType || 'expression',
-          }),
-        },
+      const data = await checkMathAnswer(
+        answer,
+        problem.correctAnswer,
+        problem.answerType || 'expression',
       )
-
-      if (!response.ok) {
-        throw new Error(
-          `Server returned ${response.status}`,
-        )
-      }
-
-      const data = await response.json()
 
       if (data.error) {
         setResult(null)

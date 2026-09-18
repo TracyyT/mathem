@@ -1,8 +1,7 @@
 import { useState, useRef } from 'react'
 import problems from '../data/problems'
 import getProblem from '../utils/getProblem'
-
-const API_URL = import.meta.env.VITE_API_URL
+import { checkMathAnswer } from '../services/mathApi'
 
 function PracticePage() {
     const [selectedCourse, setSelectedCourse] = useState('Calculus I')
@@ -55,33 +54,11 @@ function PracticePage() {
             setCheckError(null)
 
             try {
-                const response = await fetch(
-                `${API_URL}/check-answer`,
-                {
-                    method: 'POST',
-
-                    headers: {
-                    'Content-Type': 'application/json',
-                    },
-
-                    body: JSON.stringify({
-                    student_answer: answer,
-                    correct_answer:
-                        activeProblem.correctAnswer,
-                    answer_type:
-                        activeProblem.answerType ||
-                        'expression',
-                    }),
-                },
+                const data = await checkMathAnswer(
+                    answer,
+                    activeProblem.correctAnswer,
+                    activeProblem.answerType || 'expression',
                 )
-
-                if (!response.ok) {
-                throw new Error(
-                    `Server returned ${response.status}`,
-                )
-                }
-
-                const data = await response.json()
 
                 if (data.error) {
                 setResult(null)
