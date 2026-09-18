@@ -6,6 +6,16 @@ import {
   saveSettings,
 } from '../utils/settingsStorage'
 
+const weekDays = [
+  'Monday',
+  'Tuesday',
+  'Wednesday',
+  'Thursday',
+  'Friday',
+  'Saturday',
+  'Sunday',
+]
+
 function SetupPage() {
   const navigate = useNavigate()
 
@@ -21,27 +31,58 @@ function SetupPage() {
     currentSettings.schedule,
   )
 
-  const completeSetup = () => {
-    let scheduleDays
+  const [selectedDays, setSelectedDays] = useState(
+    currentSettings.scheduleDays || [],
+  )
 
-    if (schedule === 'Daily') {
-      scheduleDays = [
-        'Sunday',
-        'Monday',
-        'Tuesday',
-        'Wednesday',
-        'Thursday',
-        'Friday',
-        'Saturday',
-      ]
-    } else if (schedule === 'Weekly') {
-      scheduleDays = ['Monday']
+  const requiredDays =
+    schedule === 'Daily'
+      ? 7
+      : schedule === '3x per week'
+        ? 3
+        : 1
+
+  const changeSchedule = (newSchedule) => {
+    setSchedule(newSchedule)
+
+    if (newSchedule === 'Daily') {
+      setSelectedDays(weekDays)
     } else {
-      scheduleDays = [
-        'Monday',
-        'Wednesday',
-        'Friday',
-      ]
+      setSelectedDays([])
+    }
+  }
+
+  const toggleDay = (day) => {
+    if (schedule === 'Daily') {
+      return
+    }
+
+    if (selectedDays.includes(day)) {
+      setSelectedDays(
+        selectedDays.filter(
+          (selectedDay) => selectedDay !== day,
+        ),
+      )
+      return
+    }
+
+    if (selectedDays.length >= requiredDays) {
+      return
+    }
+
+    setSelectedDays([
+      ...selectedDays,
+      day,
+    ])
+  }
+
+  const scheduleIsComplete =
+    schedule === 'Daily' ||
+    selectedDays.length === requiredDays
+
+  const completeSetup = () => {
+    if (!scheduleIsComplete) {
+      return
     }
 
     saveSettings({
@@ -49,16 +90,25 @@ function SetupPage() {
       course,
       difficulty,
       schedule,
-      scheduleDays,
+      scheduleDays:
+        schedule === 'Daily'
+          ? weekDays
+          : selectedDays,
     })
 
-    localStorage.setItem('mathem-setup-seen', 'true')
+    localStorage.setItem(
+      'mathem-setup-seen',
+      'true',
+    )
 
     navigate('/home')
   }
 
   const skipSetup = () => {
-    localStorage.setItem('mathem-setup-seen', 'true')
+    localStorage.setItem(
+      'mathem-setup-seen',
+      'true',
+    )
 
     navigate('/home')
   }
@@ -74,7 +124,9 @@ function SetupPage() {
       </button>
 
       <div className="setup-container">
-        <p className="page-eyebrow">Quick setup</p>
+        <p className="page-eyebrow">
+          Quick setup
+        </p>
 
         <h1>Make MathEm yours.</h1>
 
@@ -98,9 +150,13 @@ function SetupPage() {
                 key={option}
                 type="button"
                 className={
-                  course === option ? 'selected' : ''
+                  course === option
+                    ? 'selected'
+                    : ''
                 }
-                onClick={() => setCourse(option)}
+                onClick={() =>
+                  setCourse(option)
+                }
               >
                 {option}
               </button>
@@ -111,17 +167,27 @@ function SetupPage() {
         <div className="setup-question">
           <p className="setup-number">02</p>
 
-          <h2>How challenging should it feel?</h2>
+          <h2>
+            How challenging should it feel?
+          </h2>
 
           <div className="setup-options">
-            {['Easy', 'Medium', 'Hard'].map((option) => (
+            {[
+              'Easy',
+              'Medium',
+              'Hard',
+            ].map((option) => (
               <button
                 key={option}
                 type="button"
                 className={
-                  difficulty === option ? 'selected' : ''
+                  difficulty === option
+                    ? 'selected'
+                    : ''
                 }
-                onClick={() => setDifficulty(option)}
+                onClick={() =>
+                  setDifficulty(option)
+                }
               >
                 {option}
               </button>
@@ -132,7 +198,9 @@ function SetupPage() {
         <div className="setup-question">
           <p className="setup-number">03</p>
 
-          <h2>How often do you want to MathEm?</h2>
+          <h2>
+            How often do you want to MathEm?
+          </h2>
 
           <div className="setup-options">
             {[
@@ -144,20 +212,58 @@ function SetupPage() {
                 key={option}
                 type="button"
                 className={
-                  schedule === option ? 'selected' : ''
+                  schedule === option
+                    ? 'selected'
+                    : ''
                 }
-                onClick={() => setSchedule(option)}
+                onClick={() =>
+                  changeSchedule(option)
+                }
               >
                 {option}
               </button>
             ))}
           </div>
+
+          {schedule !== 'Daily' && (
+            <div className="setup-days">
+              <p>
+                {schedule === '3x per week'
+                  ? 'Choose 3 days'
+                  : 'Choose a day'}
+              </p>
+
+              <div className="setup-day-options">
+                {weekDays.map((day) => (
+                  <button
+                    key={day}
+                    type="button"
+                    className={
+                      selectedDays.includes(day)
+                        ? 'selected'
+                        : ''
+                    }
+                    onClick={() =>
+                      toggleDay(day)
+                    }
+                  >
+                    {day.slice(0, 3)}
+                  </button>
+                ))}
+              </div>
+
+              <span className="setup-day-count">
+                {selectedDays.length} / {requiredDays} selected
+              </span>
+            </div>
+          )}
         </div>
 
         <button
           type="button"
           className="primary-button setup-finish-button"
           onClick={completeSetup}
+          disabled={!scheduleIsComplete}
         >
           Start MathEm →
         </button>

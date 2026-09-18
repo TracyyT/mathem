@@ -1524,3 +1524,59 @@
   display: block;
   margin: 34px auto 0;
 }
+
+.setup-days {
+  margin-top: 24px;
+  padding-top: 20px;
+  border-top: 1px solid var(--border);
+}
+
+.setup-days > p {
+  margin: 0 0 12px;
+  color: var(--navy);
+  font-weight: 700;
+}
+
+.setup-day-options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.setup-day-options button {
+  width: 52px;
+  height: 42px;
+
+  background: var(--background);
+  color: var(--muted);
+
+  border: 1px solid var(--border);
+  border-radius: 10px;
+
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.setup-day-options button:hover {
+  border-color: var(--blue);
+  color: var(--navy);
+}
+
+.setup-day-options button.selected {
+  background: var(--light-blue);
+  color: var(--blue);
+  border-color: var(--blue);
+}
+
+.setup-day-count {
+  display: block;
+  margin-top: 10px;
+
+  color: var(--muted);
+  font-size: 0.85rem;
+}
+
+.setup-finish-button:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
