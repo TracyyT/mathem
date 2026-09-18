@@ -1580,3 +1580,9 @@
   opacity: 0.45;
   cursor: not-allowed;
 }
+
+.answer-error {
+  margin-top: 12px;
+  color: #b45309;
+  font-size: 0.95rem;
+}

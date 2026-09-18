@@ -10,6 +10,8 @@ import {
 import { getSettings } from '../utils/settingsStorage'
 import { isScheduledForToday } from '../utils/scheduleUtils'
 
+const API_URL = import.meta.env.VITE_API_URL
+
 function TodayPage() {
   const [answer, setAnswer] = useState('')
   const [result, setResult] = useState(null)
@@ -18,6 +20,8 @@ function TodayPage() {
     () => isTodayCompleted(),
     )
   const [nextDifficultyChoice, setNextDifficultyChoice] = useState('Same')
+  const [isChecking, setIsChecking] = useState(false)
+  const [checkError, setCheckError] = useState(null)
 
   const answerInputRef = useRef(null)
 
@@ -34,13 +38,16 @@ function TodayPage() {
     )
 
   const checkAnswer = async () => {
-    if (!answer.trim()) {
+    if (!answer.trim() || isChecking) {
       return
     }
 
+    setIsChecking(true)
+    setCheckError(null)
+
     try {
       const response = await fetch(
-        'http://127.0.0.1:8000/check-answer',
+        `${API_URL}/check-answer`,
         {
           method: 'POST',
 
@@ -51,12 +58,27 @@ function TodayPage() {
           body: JSON.stringify({
             student_answer: answer,
             correct_answer: problem.correctAnswer,
-            answer_type: problem.answerType || 'expression',
+            answer_type:
+              problem.answerType || 'expression',
           }),
         },
       )
 
+      if (!response.ok) {
+        throw new Error(
+          `Server returned ${response.status}`,
+        )
+      }
+
       const data = await response.json()
+
+      if (data.error) {
+        setResult(null)
+        setCheckError(
+          'MathEm could not understand that answer. Try entering it another way.',
+        )
+        return
+      }
 
       if (data.correct) {
         setResult('correct')
@@ -69,6 +91,13 @@ function TodayPage() {
         'Could not check answer:',
         error,
       )
+
+      setResult(null)
+      setCheckError(
+        'Could not check your answer right now. Please try again.',
+      )
+    } finally {
+      setIsChecking(false)
     }
   }
 
@@ -77,6 +106,7 @@ function TodayPage() {
     )
 
   const insertAtCursor = (value) => {
+    setCheckError(null)
     const input = answerInputRef.current
 
     if (!input) return
@@ -100,6 +130,7 @@ function TodayPage() {
   }
 
   const deleteAtCursor = () => {
+    setCheckError(null)
     const input = answerInputRef.current
 
     if (!input) return
@@ -300,6 +331,7 @@ function TodayPage() {
               setAnswer(event.target.value)
               setResult(null)
               setShowHint(false)
+              setCheckError(null)
             }}
             placeholder="Enter your answer"
           />
@@ -315,11 +347,13 @@ function TodayPage() {
                 <button
                 key={key}
                 type="button"
-                onClick={() =>
+                onClick={() => {
+                  setCheckError(null)
+
                   insertAtCursor(
                     key === 'Space' ? ' ' : key,
                   )
-                }
+                }}
                 >
                 {key}
                 </button>
@@ -354,10 +388,15 @@ function TodayPage() {
             type="button"
             className="primary-button submit-answer"
             onClick={checkAnswer}
+            disabled={isChecking || !answer.trim()}
           >
-            Submit answer
+            {isChecking ? 'Checking...' : 'Submit answer'}
           </button>
-
+          {checkError && (
+            <p className="answer-error">
+              {checkError}
+            </p>
+          )}
           {result === 'wrong' && (
             <div className="answer-feedback wrong-feedback">
               <div>
