@@ -2,6 +2,8 @@ import { useState, useRef } from 'react'
 import problems from '../data/problems'
 import getProblem from '../utils/getProblem'
 
+const API_URL = import.meta.env.VITE_API_URL
+
 function PracticePage() {
     const [selectedCourse, setSelectedCourse] = useState('Calculus I')
     const [selectedDifficulty, setSelectedDifficulty] = useState('Medium')
@@ -11,6 +13,8 @@ function PracticePage() {
     const [showHint, setShowHint] = useState(false)
     const answerInputRef = useRef(null)
     const [nextDifficultyChoice, setNextDifficultyChoice] = useState('Same')
+    const [isChecking, setIsChecking] = useState(false)
+    const [checkError, setCheckError] = useState(null) 
 
     const courses = [
         'Algebra I',
@@ -35,73 +39,122 @@ function PracticePage() {
         setAnswer('')
         setResult(null)
         setShowHint(false)
+        setCheckError(null)
         }
 
-        const normalizeAnswer = (value) => {
-        return value
-            .toLowerCase()
-            .replaceAll(' ', '')
-            .replaceAll('²', '^2')
-            .replaceAll('*', '')
-            .replaceAll('×', '')
-        }
+        const checkAnswer = async () => {
+            if (
+                !activeProblem ||
+                !answer.trim() ||
+                isChecking
+            ) {
+                return
+            }
 
-            const checkAnswer = () => {
-            if (!activeProblem) return
+            setIsChecking(true)
+            setCheckError(null)
 
-            const normalizedAnswer = normalizeAnswer(answer)
+            try {
+                const response = await fetch(
+                `${API_URL}/check-answer`,
+                {
+                    method: 'POST',
 
-            const acceptedAnswers =
-                activeProblem.acceptedAnswers.map(normalizeAnswer)
+                    headers: {
+                    'Content-Type': 'application/json',
+                    },
 
-            if (acceptedAnswers.includes(normalizedAnswer)) {
+                    body: JSON.stringify({
+                    student_answer: answer,
+                    correct_answer:
+                        activeProblem.correctAnswer,
+                    answer_type:
+                        activeProblem.answerType ||
+                        'expression',
+                    }),
+                },
+                )
+
+                if (!response.ok) {
+                throw new Error(
+                    `Server returned ${response.status}`,
+                )
+                }
+
+                const data = await response.json()
+
+                if (data.error) {
+                setResult(null)
+                setCheckError(
+                    'MathEm could not understand that answer. Try entering it another way.',
+                )
+                return
+                }
+
+                if (data.correct) {
                 setResult('correct')
                 setShowHint(false)
-            } else {
+                } else {
                 setResult('wrong')
+                }
+            } catch (error) {
+                console.error(
+                'Could not check answer:',
+                error,
+                )
+
+                setResult(null)
+                setCheckError(
+                'Could not check your answer right now. Please try again.',
+                )
+            } finally {
+                setIsChecking(false)
             }
-        }
+            }
+
         const insertAtCursor = (value) => {
-        const input = answerInputRef.current
-        if (!input) return
+            const input = answerInputRef.current
+            if (!input) return
 
-        const start = input.selectionStart
-        const end = input.selectionEnd
+            const start = input.selectionStart
+            const end = input.selectionEnd
 
-        const updatedAnswer =
-            answer.slice(0, start) +
-            value +
-            answer.slice(end)
-
-        setAnswer(updatedAnswer)
-        setResult(null)
-
-        requestAnimationFrame(() => {
-            const newPosition = start + value.length
-
-            input.focus()
-            input.setSelectionRange(newPosition, newPosition)
-        })
-        }
-
-        const deleteAtCursor = () => {
-        const input = answerInputRef.current
-        if (!input) return
-
-        const start = input.selectionStart
-        const end = input.selectionEnd
-
-        if (start !== end) {
             const updatedAnswer =
-            answer.slice(0, start) +
-            answer.slice(end)
+                answer.slice(0, start) +
+                value +
+                answer.slice(end)
 
             setAnswer(updatedAnswer)
             setResult(null)
+            setCheckError(null)
 
             requestAnimationFrame(() => {
-            input.focus()
-            input.setSelectionRange(start, start)
+                const newPosition = start + value.length
+
+                input.focus()
+                input.setSelectionRange(newPosition, newPosition)
+            })
+        }
+
+        const deleteAtCursor = () => {
+            const input = answerInputRef.current
+            if (!input) return
+
+            const start = input.selectionStart
+            const end = input.selectionEnd
+
+            if (start !== end) {
+                const updatedAnswer =
+                answer.slice(0, start) +
+                answer.slice(end)
+
+                setAnswer(updatedAnswer)
+                setResult(null)
+                setCheckError(null)
+
+                requestAnimationFrame(() => {
+                input.focus()
+                input.setSelectionRange(start, start)
             })
 
             return
@@ -167,6 +220,7 @@ function PracticePage() {
             setAnswer('')
             setResult(null)
             setShowHint(false)
+            setCheckError(null)
             setNextDifficultyChoice('Same')
         }
 
@@ -279,6 +333,7 @@ function PracticePage() {
                     setAnswer(event.target.value)
                     setResult(null)
                     setShowHint(false)
+                    setCheckError(null)
                 }}
                 placeholder="Enter your answer"
                 />
@@ -330,10 +385,19 @@ function PracticePage() {
                 type="button"
                 className="primary-button submit-answer"
                 onClick={checkAnswer}
-            >
-                Submit answer
+                disabled={
+                    isChecking || !answer.trim()
+                }
+                >
+                {isChecking
+                    ? 'Checking...'
+                    : 'Submit answer'}
             </button>
-
+            {checkError && (
+            <p className="answer-error">
+                {checkError}
+            </p>
+            )}
             {result === 'wrong' && (
                 <div className="answer-feedback wrong-feedback">
                 <div>
