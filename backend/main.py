@@ -3,6 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
 import sympy as sp
+import uuid
 
 from sympy.parsing.sympy_parser import (
     parse_expr,
@@ -33,6 +34,8 @@ transformations = (
         convert_xor,
     )
 )
+
+generated_problems = {}
 
 problem_bank = [
     {
@@ -80,7 +83,7 @@ class ProblemRequest(BaseModel):
     difficulty: str
 
 class PracticeAnswerRequest(BaseModel):
-    problem_id: int
+    problem_id: str
     student_answer: str
 
 def parse_math(expression: str):
@@ -142,12 +145,41 @@ def check_indefinite_integral(
         ) == 0
     )
 
-def find_problem(problem_id: int):
-    for problem in problem_bank:
-        if problem["id"] == problem_id:
-            return problem
+def find_problem(problem_id: str):
+    return generated_problems.get(problem_id)
 
-    return None
+def verify_candidate_problem(problem):
+    try:
+        answer_type = problem.get(
+            "answer_type",
+            "expression",
+        )
+
+        correct_answer = problem[
+            "correct_answer"
+        ]
+
+        if answer_type == "solution-set":
+            solutions = parse_solution_set(
+                correct_answer
+            )
+
+            return len(solutions) > 0
+
+        if answer_type == "indefinite-integral":
+            answer = parse_math(correct_answer)
+
+            x = sp.Symbol("x")
+            derivative = sp.diff(answer, x)
+
+            return derivative is not None
+
+        answer = parse_math(correct_answer)
+
+        return answer is not None
+
+    except Exception:
+        return False
 
 @app.get("/")
 def root():
@@ -172,9 +204,16 @@ def generate_problem(request: ProblemRequest):
         }
 
     problem = matching_problems[0]
+    if not verify_candidate_problem(problem):
+        return {
+            "error": "Generated problem could not be verified."
+        }
+    problem_id = str(uuid.uuid4())
+
+    generated_problems[problem_id] = problem
 
     return {
-        "id": problem["id"],
+        "id": problem_id,
         "course": problem["course"],
         "topic": problem["topic"],
         "difficulty": problem["difficulty"],
