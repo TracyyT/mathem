@@ -59,6 +59,11 @@ problem_bank = [
         "correct_answer": "6x^2 + 10x - 4",
         "answer_type": "expression",
         "hint": "Differentiate each term using the power rule.",
+        "verification": {
+            "operation": "derivative",
+            "expression": "2*x^3 + 5*x^2 - 4*x",
+            "variable": "x",
+        },
     },
     {
         "id": 103,
@@ -70,6 +75,22 @@ problem_bank = [
         "correct_answer": "x^4 + C",
         "answer_type": "indefinite-integral",
         "hint": "Increase the exponent by 1, then divide by the new exponent.",
+    },
+    {
+        "id": 104,
+        "course": "Calculus I",
+        "topic": "Product Rule",
+        "difficulty": "Hard",
+        "prompt": "Differentiate:",
+        "expression": "f(x) = x^2(x + 3)",
+        "correct_answer": "3x^2 + 6x",
+        "answer_type": "expression",
+        "hint": "Use the product rule, or expand first and then differentiate.",
+        "verification": {
+            "operation": "derivative",
+            "expression": "x^2 * (x + 3)",
+            "variable": "x",
+        },
     },
 ]
 
@@ -150,6 +171,14 @@ def find_problem(problem_id: str):
 
 def verify_candidate_problem(problem):
     try:
+        verification = problem.get("verification")
+
+        if verification:
+            operation = verification.get("operation")
+
+            if operation == "derivative":
+                return verify_derivative_problem(problem)
+            
         answer_type = problem.get(
             "answer_type",
             "expression",
@@ -180,6 +209,38 @@ def verify_candidate_problem(problem):
 
     except Exception:
         return False
+    
+def verify_derivative_problem(problem):
+    verification = problem.get("verification")
+
+    if not verification:
+        return False
+
+    if verification.get("operation") != "derivative":
+        return False
+
+    expression = parse_math(
+        verification["expression"]
+    )
+
+    variable = sp.Symbol(
+        verification.get("variable", "x")
+    )
+
+    expected_answer = sp.diff(
+        expression,
+        variable,
+    )
+
+    claimed_answer = parse_math(
+        problem["correct_answer"]
+    )
+
+    return (
+        sp.simplify(
+            expected_answer - claimed_answer
+        ) == 0
+    )
 
 @app.get("/")
 def root():
