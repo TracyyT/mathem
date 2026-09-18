@@ -51,6 +51,7 @@ function TodayPage() {
           body: JSON.stringify({
             student_answer: answer,
             correct_answer: problem.correctAnswer,
+            answer_type: problem.answerType || 'expression',
           }),
         },
       )

@@ -27,6 +27,7 @@ const problems = [
     prompt: 'Solve for x:',
     expression: 'x² - 5x + 6 = 0',
     correctAnswer: '2,3',
+    answerType: 'solution-set',
     hint: 'Factor the quadratic, then set each factor equal to 0.',
   },
   {
@@ -77,6 +78,7 @@ const problems = [
     prompt: 'Find the indefinite integral:',
     expression: '∫ 3x² dx',
     correctAnswer: 'x^3+C',
+    answerType: 'indefinite-integral',
     hint: 'Increase the exponent by 1, then divide by the new exponent.',
   },
   {
@@ -87,6 +89,7 @@ const problems = [
     prompt: 'Evaluate:',
     expression: '∫ 2x(x² + 1)³ dx',
     correctAnswer: '(x^2+1)^4/4+C',
+    answerType: 'indefinite-integral',
     hint: 'Let u = x² + 1.',
   },
 ]
