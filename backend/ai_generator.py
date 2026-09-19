@@ -61,6 +61,21 @@ class DefiniteIntegralProblemCandidate(BaseModel):
     hint: str
     verification: DefiniteIntegralVerification
 
+class IndefiniteIntegralVerification(BaseModel):
+    operation: Literal["indefinite-integral"]
+    integrand: str
+    variable: Literal["x"]
+
+
+class IndefiniteIntegralProblemCandidate(BaseModel):
+    topic: str
+    prompt: str
+    expression: str
+    correct_answer: str
+    answer_type: Literal["indefinite-integral"]
+    hint: str
+    verification: IndefiniteIntegralVerification
+
 def generate_equation_candidate(
     course: str,
     difficulty: str,
@@ -176,6 +191,52 @@ def generate_definite_integral_candidate(
 
     return response.output_parsed.model_dump()
 
+def generate_indefinite_integral_candidate(
+    course: str,
+    difficulty: str,
+):
+    response = client.responses.parse(
+        model="gpt-5.6-luna",
+        input=[
+            {
+                "role": "system",
+                "content": (
+                    "You generate short math practice "
+                    "problems for students. Problems must "
+                    "be solvable by hand. Use plain-text "
+                    "mathematical expressions that SymPy "
+                    "can parse for all verification fields. "
+                    "For indefinite integrals, the correct "
+                    "answer must include a symbolic "
+                    "arbitrary constant such as + C."
+                ),
+            },
+            {
+                "role": "user",
+                "content": (
+                    f"Generate one {course} "
+                    f"{difficulty.lower()}-difficulty "
+                    "indefinite integral problem. "
+                    "The operation must be "
+                    "indefinite-integral. "
+                    "Use x as the variable. "
+                    "Create a fresh problem with different "
+                    "coefficients and integrands. "
+                    "Keep the problem reasonable to solve "
+                    "by hand. "
+                    "For medium difficulty, prefer one "
+                    "main integration technique rather "
+                    "than combining several advanced "
+                    "techniques. "
+                    "The correct answer must include + C."
+                ),
+            },
+        ],
+        text_format=IndefiniteIntegralProblemCandidate,
+    )
+
+    return response.output_parsed.model_dump()
+
 def generate_verified_equation_problem(
     course: str,
     difficulty: str,
@@ -250,6 +311,34 @@ def generate_verified_definite_integral_problem(
         print(
             f"AI definite integral candidate failed "
             f"verification "
+            f"(attempt {attempt}/{max_attempts})"
+        )
+
+    return None
+
+def generate_verified_indefinite_integral_problem(
+    course: str,
+    difficulty: str,
+    verifier,
+    max_attempts: int = 3,
+):
+    for attempt in range(
+        1,
+        max_attempts + 1,
+    ):
+        candidate = (
+            generate_indefinite_integral_candidate(
+                course,
+                difficulty,
+            )
+        )
+
+        if verifier(candidate):
+            return candidate
+
+        print(
+            f"AI indefinite integral candidate "
+            f"failed verification "
             f"(attempt {attempt}/{max_attempts})"
         )
 

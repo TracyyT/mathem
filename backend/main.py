@@ -5,6 +5,7 @@ from ai_generator import (
     generate_verified_equation_problem,
     generate_verified_derivative_problem,
     generate_verified_definite_integral_problem,
+    generate_verified_indefinite_integral_problem,
 )
 
 import sympy as sp
@@ -41,7 +42,7 @@ transformations = (
 )
 
 generated_problems = {}
-
+calculus_ii_generation_count = 0
 problem_bank = [
     {
         "id": 101,
@@ -618,17 +619,31 @@ def generate_problem(request: ProblemRequest):
                 "expression": ai_problem["expression"],
                 "hint": ai_problem["hint"],
             }
-    # Try AI-generated definite integrals for Calculus II
+    # Alternate between definite and indefinite
+    # integrals for Calculus II
     if request.course == "Calculus II":
-        ai_problem = (
-            generate_verified_definite_integral_problem(
-                course=request.course,
-                difficulty=request.difficulty,
-                verifier=verify_candidate_problem,
+        global calculus_ii_generation_count
+
+        if calculus_ii_generation_count % 2 == 0:
+            ai_problem = (
+                generate_verified_definite_integral_problem(
+                    course=request.course,
+                    difficulty=request.difficulty,
+                    verifier=verify_candidate_problem,
+                )
             )
-        )
+        else:
+            ai_problem = (
+                generate_verified_indefinite_integral_problem(
+                    course=request.course,
+                    difficulty=request.difficulty,
+                    verifier=verify_candidate_problem,
+                )
+            )
 
         if ai_problem:
+            calculus_ii_generation_count += 1
+
             problem_id = str(uuid.uuid4())
 
             generated_problems[
