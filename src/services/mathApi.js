@@ -99,6 +99,7 @@ export async function generateProblem(
     difficulty: data.difficulty,
     prompt: data.prompt,
     expression: data.expression,
+    displayExpression: data.display_expression,
     hint: data.hint,
   }
 }

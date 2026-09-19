@@ -1586,3 +1586,39 @@
   color: #b45309;
   font-size: 0.95rem;
 }
+
+.math-display {
+  font-size: 1.15rem;
+  line-height: 1.8;
+  padding: 0.75rem 0;
+  overflow-x: auto;
+  overflow-y: hidden;
+}
+
+.math-display .katex-display {
+  margin: 0;
+  padding: 0.35rem 0;
+}
+
+.math-display .katex {
+  font-size: 1em;
+}
+
+.math-display .katex-display > .katex {
+  font-size: 1.4rem;
+}
+
+/* Make exponents and integral bounds smaller */
+.math-display .katex .msupsub {
+  font-size: 0.7em;
+}
+/* Normal powers/subscripts */
+.math-display .katex .msupsub {
+  font-size: 0.7em;
+}
+
+/* Integral upper and lower bounds */
+.math-display .katex .op-limits .sizing {
+  font-size: 0.8em !important;
+}
+

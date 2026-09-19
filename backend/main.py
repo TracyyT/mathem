@@ -153,6 +153,73 @@ class PracticeAnswerRequest(BaseModel):
     problem_id: str
     student_answer: str
 
+def create_display_expression(problem):
+    verification = problem.get("verification", {})
+    operation = verification.get("operation")
+
+    if operation == "derivative":
+        expression = parse_math(
+            verification["expression"]
+        )
+
+        return sp.latex(expression)
+
+    if operation == "solve-equation":
+        left_side = parse_math(
+            verification["left_side"]
+        )
+        right_side = parse_math(
+            verification["right_side"]
+        )
+
+        return (
+            f"{sp.latex(left_side)}"
+            f" = "
+            f"{sp.latex(right_side)}"
+        )
+
+    if operation == "definite-integral":
+        integrand = parse_math(
+            verification["integrand"]
+        )
+        variable = sp.Symbol(
+            verification.get("variable", "x")
+        )
+        lower_bound = parse_math(
+            verification["lower_bound"]
+        )
+        upper_bound = parse_math(
+            verification["upper_bound"]
+        )
+
+        integral = sp.Integral(
+            integrand,
+            (
+                variable,
+                lower_bound,
+                upper_bound,
+            ),
+        )
+
+        return sp.latex(integral)
+
+    if operation == "indefinite-integral":
+        integrand = parse_math(
+            verification["integrand"]
+        )
+        variable = sp.Symbol(
+            verification.get("variable", "x")
+        )
+
+        integral = sp.Integral(
+            integrand,
+            variable,
+        )
+
+        return sp.latex(integral)
+
+    return problem["expression"]
+
 def parse_math(expression: str):
     expression = (
         expression
@@ -590,6 +657,9 @@ def generate_problem(request: ProblemRequest):
                 "difficulty": request.difficulty,
                 "prompt": ai_problem["prompt"],
                 "expression": ai_problem["expression"],
+                "display_expression": create_display_expression(
+                    ai_problem
+                ),
                 "hint": ai_problem["hint"],
             }
         
@@ -617,6 +687,9 @@ def generate_problem(request: ProblemRequest):
                 "difficulty": request.difficulty,
                 "prompt": ai_problem["prompt"],
                 "expression": ai_problem["expression"],
+                "display_expression": create_display_expression(
+                    ai_problem
+                ),
                 "hint": ai_problem["hint"],
             }
     # Alternate between definite and indefinite
@@ -657,6 +730,9 @@ def generate_problem(request: ProblemRequest):
                 "difficulty": request.difficulty,
                 "prompt": ai_problem["prompt"],
                 "expression": ai_problem["expression"],
+                "display_expression": create_display_expression(
+                    ai_problem
+                ),
                 "hint": ai_problem["hint"],
             }
         

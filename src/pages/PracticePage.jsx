@@ -3,6 +3,7 @@ import {
   checkPracticeAnswer,
   generateProblem,
 } from '../services/mathApi'
+import MathDisplay from '../components/MathDisplay'
 
 function PracticePage() {
     const [selectedCourse, setSelectedCourse] = useState('Calculus I')
@@ -332,9 +333,12 @@ function PracticePage() {
                 {activeProblem.prompt}
             </p>
 
-            <h2 className="math-text">
-                {activeProblem.expression}
-            </h2>
+            <MathDisplay
+            math={
+                activeProblem.displayExpression ||
+                activeProblem.expression
+            }
+            />
             </div>
 
             <div className="answer-section">
