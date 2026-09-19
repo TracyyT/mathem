@@ -1,6 +1,9 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
+from ai_generator import (
+    generate_verified_equation_problem,
+)
 
 import sympy as sp
 import uuid
@@ -169,6 +172,8 @@ def parse_solution_set(expression: str):
         .replace("x", "")
         .replace("=", "")
         .replace("and", ",")
+        .replace("{", "")
+        .replace("}", "")
         .replace(" ", "")
     )
 
@@ -439,40 +444,7 @@ def root():
         "message": "MathEm API is running"
     }
 
-@app.post("/generate-problem")
-def generate_problem(request: ProblemRequest):
-    matching_problems = [
-        problem
-        for problem in problem_bank
-        if (
-            problem["course"] == request.course
-            and problem["difficulty"] == request.difficulty
-        )
-    ]
 
-    if not matching_problems:
-        return {
-            "error": "No matching problem found."
-        }
-
-    problem = matching_problems[0]
-    if not verify_candidate_problem(problem):
-        return {
-            "error": "Generated problem could not be verified."
-        }
-    problem_id = str(uuid.uuid4())
-
-    generated_problems[problem_id] = problem
-
-    return {
-        "id": problem_id,
-        "course": problem["course"],
-        "topic": problem["topic"],
-        "difficulty": problem["difficulty"],
-        "prompt": problem["prompt"],
-        "expression": problem["expression"],
-        "hint": problem["hint"],
-    }
 
 @app.post("/check-answer")
 def check_answer(request: AnswerRequest):
@@ -587,3 +559,73 @@ def check_practice_answer(
             "correct": False,
             "error": "Could not understand the math expression."
         }
+    
+@app.post("/generate-problem")
+def generate_problem(request: ProblemRequest):
+
+    # Try AI generation for Algebra I first
+    if request.course == "Algebra I":
+        ai_problem = (
+            generate_verified_equation_problem(
+                course=request.course,
+                difficulty=request.difficulty,
+                verifier=verify_candidate_problem,
+            )
+        )
+
+        if ai_problem:
+            problem_id = str(uuid.uuid4())
+
+            generated_problems[
+                problem_id
+            ] = ai_problem
+
+            return {
+                "id": problem_id,
+                "course": request.course,
+                "topic": ai_problem["topic"],
+                "difficulty": request.difficulty,
+                "prompt": ai_problem["prompt"],
+                "expression": ai_problem["expression"],
+                "hint": ai_problem["hint"],
+            }
+
+    # Static fallback
+    matching_problems = [
+        problem
+        for problem in problem_bank
+        if (
+            problem["course"] == request.course
+            and problem["difficulty"]
+            == request.difficulty
+        )
+    ]
+
+    if not matching_problems:
+        return {
+            "error": "No matching problem found."
+        }
+
+    problem = matching_problems[0]
+
+    if not verify_candidate_problem(problem):
+        return {
+            "error":
+                "Generated problem could not be verified."
+        }
+
+    problem_id = str(uuid.uuid4())
+
+    generated_problems[
+        problem_id
+    ] = problem
+
+    return {
+        "id": problem_id,
+        "course": problem["course"],
+        "topic": problem["topic"],
+        "difficulty": problem["difficulty"],
+        "prompt": problem["prompt"],
+        "expression": problem["expression"],
+        "hint": problem["hint"],
+    }
