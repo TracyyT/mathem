@@ -4,6 +4,7 @@ from pydantic import BaseModel
 from ai_generator import (
     generate_verified_equation_problem,
     generate_verified_derivative_problem,
+    generate_verified_definite_integral_problem,
 )
 
 import sympy as sp
@@ -617,7 +618,33 @@ def generate_problem(request: ProblemRequest):
                 "expression": ai_problem["expression"],
                 "hint": ai_problem["hint"],
             }
+    # Try AI-generated definite integrals for Calculus II
+    if request.course == "Calculus II":
+        ai_problem = (
+            generate_verified_definite_integral_problem(
+                course=request.course,
+                difficulty=request.difficulty,
+                verifier=verify_candidate_problem,
+            )
+        )
 
+        if ai_problem:
+            problem_id = str(uuid.uuid4())
+
+            generated_problems[
+                problem_id
+            ] = ai_problem
+
+            return {
+                "id": problem_id,
+                "course": request.course,
+                "topic": ai_problem["topic"],
+                "difficulty": request.difficulty,
+                "prompt": ai_problem["prompt"],
+                "expression": ai_problem["expression"],
+                "hint": ai_problem["hint"],
+            }
+        
     # Static fallback
     matching_problems = [
         problem
