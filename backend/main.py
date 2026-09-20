@@ -7,7 +7,7 @@ from ai_generator import (
     generate_verified_definite_integral_problem,
     generate_verified_indefinite_integral_problem,
 )
-
+import re
 import sympy as sp
 import uuid
 
@@ -246,13 +246,31 @@ def parse_math(expression: str):
         .replace("³", "^3")
         .replace("×", "*")
         .replace("÷", "/")
+        .replace(" ", "")
+    )
+
+    expression = re.sub(
+        r"log([a-zA-Z])",
+        r"log(\1)",
+        expression,
+    )
+
+    expression = re.sub(
+        r"sin([a-zA-Z])",
+        r"sin(\1)",
+        expression,
+    )
+
+    expression = re.sub(
+        r"cos([a-zA-Z])",
+        r"cos(\1)",
+        expression,
     )
 
     return parse_expr(
         expression,
         transformations=transformations,
     )
-
 
 def parse_solution_set(expression: str):
     expression = (
@@ -663,8 +681,8 @@ def check_answer(request: AnswerRequest):
             "error": "Could not understand the math expression."
         }
     
-@app.post("/check-practice-answer")
-def check_practice_answer(
+@app.post("/check-generated-answer")
+def check_generated_answer(
     request: PracticeAnswerRequest
 ):
     problem = find_problem(request.problem_id)

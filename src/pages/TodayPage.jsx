@@ -1,6 +1,4 @@
-import { useRef, useState } from 'react'
-import problems from '../data/problems'
-import getProblem from '../utils/getProblem'
+import { useEffect, useRef, useState } from 'react'
 import {
   getProgress,
   saveProgress,
@@ -9,7 +7,16 @@ import {
 } from '../utils/progressStorage'
 import { getSettings } from '../utils/settingsStorage'
 import { isScheduledForToday } from '../utils/scheduleUtils'
-import { checkMathAnswer } from '../services/mathApi'
+import {
+  checkGeneratedAnswer,
+  generateProblem,
+} from '../services/mathApi'
+import MathDisplay from '../components/MathDisplay'
+import {
+  getTodayProblem,
+  saveTodayProblem,
+  clearTodayProblem,
+} from '../utils/todayProblemStorage'
 
 function TodayPage() {
   const [answer, setAnswer] = useState('')
@@ -21,20 +28,56 @@ function TodayPage() {
   const [nextDifficultyChoice, setNextDifficultyChoice] = useState('Same')
   const [isChecking, setIsChecking] = useState(false)
   const [checkError, setCheckError] = useState(null)
+  const [isGenerating, setIsGenerating] = useState(false)
+  const [generateError, setGenerateError] = useState('')
+  const [problem, setProblem] = useState(
+    () => getTodayProblem(),
+  )
 
   const answerInputRef = useRef(null)
 
-    const settings = getSettings()
+  const settings = getSettings()
 
-    const selectedCourse = settings.course
-    const selectedDifficulty = settings.difficulty
-    const scheduledToday = isScheduledForToday(settings)
+  const selectedCourse = settings.course
+  const selectedDifficulty = settings.difficulty
+  const scheduledToday = isScheduledForToday(settings)
 
-    const problem = getProblem(
-        problems,
-        selectedCourse,
-        selectedDifficulty,
+  const loadTodayProblem = async () => {
+    setIsGenerating(true)
+    setGenerateError('')
+
+    try {
+      const generatedProblem = await generateProblem(
+      selectedCourse,
+      selectedDifficulty,
     )
+
+    saveTodayProblem(generatedProblem)
+    setProblem(generatedProblem)
+    } catch (error) {
+      console.error(
+        'Failed to generate today problem:',
+        error,
+      )
+
+      setGenerateError(
+        'Could not generate your MathEm right now. ' +
+        'Please try again.',
+      )
+    } finally {
+      setIsGenerating(false)
+    }
+  }
+
+  useEffect(() => {
+    if (
+      scheduledToday &&
+      !isCompleted &&
+      !problem
+    ) {
+      loadTodayProblem()
+    }
+  }, [])
 
   const checkAnswer = async () => {
     if (!answer.trim() || isChecking) {
@@ -45,10 +88,9 @@ function TodayPage() {
     setCheckError(null)
 
     try {
-      const data = await checkMathAnswer(
+      const data = await checkGeneratedAnswer(
+        problem.id,
         answer,
-        problem.correctAnswer,
-        problem.answerType || 'expression',
       )
 
       if (data.error) {
@@ -162,18 +204,6 @@ function TodayPage() {
     input.setSelectionRange(newPosition, newPosition)
   }
 
-  if (!problem) {
-    return (
-        <section className="page">
-        <p className="page-eyebrow">Today</p>
-        <h1>No MathEm available.</h1>
-        <p className="page-description">
-            We couldn't find a problem matching your current practice settings.
-        </p>
-        </section>
-      )
-    }
-
     if (isCompleted) {
     return (
         <section className="page">
@@ -189,11 +219,9 @@ function TodayPage() {
             </p>
 
             <div className="completed-summary">
-                <span>{problem.course}</span>
-                <span>•</span>
-                <span>{problem.topic}</span>
-                <span>•</span>
-                <span>{problem.difficulty}</span>
+              <span>{selectedCourse}</span>
+              <span>•</span>
+              <span>{selectedDifficulty}</span>
             </div>
 
             <div className="completed-streak">
@@ -238,27 +266,68 @@ function TodayPage() {
             </section>
           )
         }
+      
+      if (isGenerating) {
+        return (
+          <section className="page">
+            <p className="page-eyebrow">Today</p>
+
+            <h1>Preparing your MathEm...</h1>
+
+            <p className="page-description">
+              Creating today's problem.
+            </p>
+          </section>
+        )
+      }
+
+      if (generateError) {
+        return (
+          <section className="page">
+            <p className="page-eyebrow">Today</p>
+
+            <h1>Couldn't prepare your MathEm.</h1>
+
+            <p className="page-description">
+              {generateError}
+            </p>
+
+            <button
+              type="button"
+              className="primary-button"
+              onClick={loadTodayProblem}
+            >
+              Try again
+            </button>
+          </section>
+        )
+      }
+
+      if (!problem) {
+        return null
+      }
+
 
     const completeMathem = () => {
-    const currentProgress = getProgress()
-    const alreadyCompletedToday = isTodayCompleted()
+      const currentProgress = getProgress()
+      const alreadyCompletedToday = isTodayCompleted()
 
-    const updatedStreak = alreadyCompletedToday
-        ? currentProgress.streak
-        : currentProgress.streak + 1
+      const updatedStreak = alreadyCompletedToday
+          ? currentProgress.streak
+          : currentProgress.streak + 1
 
-    const updatedProgress = {
-        ...currentProgress,
-        streak: updatedStreak,
-        lastCompletedDate: getTodayDateString(),
-        nextDifficultyChoice,
-    }
+      const updatedProgress = {
+          ...currentProgress,
+          streak: updatedStreak,
+          lastCompletedDate: getTodayDateString(),
+          nextDifficultyChoice,
+      }
 
-    saveProgress(updatedProgress)
-
-    setStreak(updatedStreak)
-    setIsCompleted(true)
-    setResult(null)
+      saveProgress(updatedProgress)
+      clearTodayProblem()
+      setStreak(updatedStreak)
+      setIsCompleted(true)
+      setResult(null)
     }
 
   return (
@@ -291,9 +360,12 @@ function TodayPage() {
             {problem.prompt}
           </p>
 
-          <h2 className="math-text">
-            {problem.expression}
-          </h2>
+          <MathDisplay
+            math={
+              problem.displayExpression ||
+              problem.expression
+            }
+          />
         </div>
 
         <div className="answer-section">

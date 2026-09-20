@@ -31,12 +31,12 @@ export async function checkMathAnswer(
   return response.json()
 }
 
-export async function checkPracticeAnswer(
+export async function checkGeneratedAnswer(
   problemId,
   studentAnswer,
 ) {
   const response = await fetch(
-    `${API_URL}/check-practice-answer`,
+    `${API_URL}/check-generated-answer`,
     {
       method: 'POST',
 

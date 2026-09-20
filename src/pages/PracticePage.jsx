@@ -1,6 +1,6 @@
 import { useState, useRef } from 'react'
 import {
-  checkPracticeAnswer,
+  checkGeneratedAnswer,
   generateProblem,
 } from '../services/mathApi'
 import MathDisplay from '../components/MathDisplay'
@@ -74,7 +74,7 @@ function PracticePage() {
             setCheckError(null)
 
             try {
-                const data = await checkPracticeAnswer(
+                const data = await checkGeneratedAnswer(
                 activeProblem.id,
                 answer,
                 )
