@@ -1,22 +1,28 @@
 from ai_generator import (
-    generate_verified_indefinite_integral_problem,
+    generate_verified_equation_problem,
 )
 from main import verify_candidate_problem
 
 
-problem = (
-    generate_verified_indefinite_integral_problem(
-        course="Calculus II",
-        difficulty="Medium",
-        verifier=verify_candidate_problem,
-    )
-)
+for difficulty in [
+    "Easy",
+    "Medium",
+    "Hard",
+]:
+    print()
+    print("=" * 50)
+    print(difficulty.upper())
+    print("=" * 50)
 
-if problem:
-    print("Verified indefinite integral problem:")
-    print(problem)
-else:
-    print(
-        "Could not generate a verified "
-        "indefinite integral problem."
-    )
+    for number in range(1, 4):
+        problem = (
+            generate_verified_equation_problem(
+                course="Algebra I",
+                difficulty=difficulty,
+                verifier=verify_candidate_problem,
+            )
+        )
+
+        print()
+        print(f"Problem {number}:")
+        print(problem)

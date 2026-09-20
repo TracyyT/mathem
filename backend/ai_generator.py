@@ -76,10 +76,56 @@ class IndefiniteIntegralProblemCandidate(BaseModel):
     hint: str
     verification: IndefiniteIntegralVerification
 
+def get_algebra_difficulty_instructions(
+    difficulty: str,
+):
+    rubrics = {
+        "Easy": (
+            "Generate a one-step or two-step linear "
+            "equation with exactly one real solution. "
+            "Use integer coefficients and keep the "
+            "arithmetic simple. Do not use fractions, "
+            "parentheses, quadratics, or variables on "
+            "both sides."
+        ),
+        "Medium": (
+            "Generate a multi-step linear equation "
+            "with exactly one real solution. Use "
+            "parentheses, distribution, combining like "
+            "terms, or variables on both sides. Use "
+            "integer coefficients and keep the "
+            "arithmetic reasonable by hand. Do not "
+            "generate quadratic equations."
+        ),
+        "Hard": (
+            "Generate an Algebra I quadratic equation "
+            "that requires factoring, completing the "
+            "square, or the quadratic formula. The "
+            "equation may require rearranging terms "
+            "before solving. Keep all coefficients "
+            "small and reasonable for hand calculation. "
+            "Require real solutions. If the solutions "
+            "are irrational, keep the radicals simple, "
+            "such as sqrt(2), sqrt(3), sqrt(5), or "
+            "sqrt(7). Avoid large discriminants or "
+            "complicated radicals."
+        ),
+    }
+
+    return rubrics.get(
+        difficulty,
+        rubrics["Medium"],
+    )
+
 def generate_equation_candidate(
     course: str,
     difficulty: str,
 ):
+    difficulty_instructions = (
+        get_algebra_difficulty_instructions(
+            difficulty
+        )
+    )
     response = client.responses.parse(
         model="gpt-5.6-luna",
         input=[
@@ -99,9 +145,15 @@ def generate_equation_candidate(
                     f"Generate one {course} "
                     f"{difficulty.lower()}-difficulty "
                     "equation-solving problem. "
-                    "The operation must be "
-                    "solve-equation. Use x as the "
-                    "variable."
+                    "Use x as the variable. "
+                    "The operation must be solve-equation. "
+                    "The answer_type must be solution-set. "
+                    "Create a fresh problem with different "
+                    "coefficients from previous examples. "
+                    "The problem must be reasonable to solve "
+                    "by hand.\n\n"
+                    "Difficulty requirements:\n"
+                    f"{difficulty_instructions}"
                 ),
             },
         ],
