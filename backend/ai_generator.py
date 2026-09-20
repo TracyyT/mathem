@@ -162,6 +162,47 @@ def get_calculus_i_difficulty_instructions(
         rubrics["Medium"],
     )
 
+def get_calculus_ii_difficulty_instructions(
+    difficulty: str,
+):
+    rubrics = {
+        "Easy": (
+            "Generate a basic integral that can be "
+            "solved directly using standard "
+            "antiderivative rules, such as the power "
+            "rule, constant multiple rule, or simple "
+            "sums and differences. Use small integer "
+            "coefficients. Do not require substitution, "
+            "integration by parts, trigonometric "
+            "substitution, or other advanced techniques."
+        ),
+        "Medium": (
+            "Generate an integral requiring exactly one "
+            "main integration technique: straightforward "
+            "u-substitution or basic integration by "
+            "parts. Keep the expression compact and "
+            "reasonable to solve by hand. Do not require "
+            "trigonometric substitution, repeated "
+            "integration by parts, or multiple major "
+            "integration techniques."
+        ),
+        "Hard": (
+            "Generate an integral requiring a more "
+            "advanced Calculus II technique, such as "
+            "trigonometric substitution, repeated "
+            "integration by parts, or a more involved "
+            "substitution. Keep the expression reasonable "
+            "to solve by hand. Use only one main advanced "
+            "strategy and avoid combining several "
+            "unrelated advanced techniques."
+        ),
+    }
+
+    return rubrics.get(
+        difficulty,
+        rubrics["Medium"],
+    )
+
 def generate_equation_candidate(
     course: str,
     difficulty: str,
@@ -260,6 +301,11 @@ def generate_definite_integral_candidate(
     course: str,
     difficulty: str,
 ):
+    difficulty_instructions = (
+        get_calculus_ii_difficulty_instructions(
+            difficulty
+        )
+    )
     response = client.responses.parse(
         model="gpt-5.6-luna",
         input=[
@@ -285,14 +331,16 @@ def generate_definite_integral_candidate(
                     "The operation must be "
                     "definite-integral. "
                     "Use x as the variable. "
+                    "Choose bounds that keep the exact "
+                    "answer reasonable to calculate by hand. "
                     "Create a fresh problem with different "
-                    "coefficients, bounds, and integrand. "
-                    "Keep the problem short and reasonable "
-                    "to solve by hand. "
-                    "For medium difficulty, use one main "
-                    "integration technique rather than "
-                    "combining several advanced techniques. "
-                    "Do not always use logarithms."
+                    "coefficients, bounds, and integrands. "
+                    "The verification integrand and bounds "
+                    "must use valid SymPy syntax. "
+                    "Keep the problem reasonable to solve "
+                    "by hand.\n\n"
+                    "Difficulty requirements:\n"
+                    f"{difficulty_instructions}"
                 ),
             },
         ],
@@ -305,6 +353,11 @@ def generate_indefinite_integral_candidate(
     course: str,
     difficulty: str,
 ):
+    difficulty_instructions = (
+        get_calculus_ii_difficulty_instructions(
+            difficulty
+        )
+    )
     response = client.responses.parse(
         model="gpt-5.6-luna",
         input=[
@@ -334,11 +387,12 @@ def generate_indefinite_integral_candidate(
                     "coefficients and integrands. "
                     "Keep the problem reasonable to solve "
                     "by hand. "
-                    "For medium difficulty, prefer one "
-                    "main integration technique rather "
-                    "than combining several advanced "
-                    "techniques. "
-                    "The correct answer must include + C."
+                    "The correct answer must include a "
+                    "symbolic arbitrary constant such as + C. "
+                    "The verification integrand must use "
+                    "valid SymPy syntax.\n\n"
+                    "Difficulty requirements:\n"
+                    f"{difficulty_instructions}"
                 ),
             },
         ],
