@@ -1,5 +1,5 @@
 from ai_generator import (
-    generate_verified_equation_problem,
+    generate_verified_derivative_problem,
 )
 from main import verify_candidate_problem
 
@@ -16,8 +16,8 @@ for difficulty in [
 
     for number in range(1, 4):
         problem = (
-            generate_verified_equation_problem(
-                course="Algebra I",
+            generate_verified_derivative_problem(
+                course="Calculus I",
                 difficulty=difficulty,
                 verifier=verify_candidate_problem,
             )

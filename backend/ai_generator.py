@@ -117,6 +117,51 @@ def get_algebra_difficulty_instructions(
         rubrics["Medium"],
     )
 
+def get_calculus_i_difficulty_instructions(
+    difficulty: str,
+):
+    rubrics = {
+        "Easy": (
+            "Generate a basic derivative problem using "
+            "the power rule, constant multiple rule, "
+            "and/or sum and difference rules. Use "
+            "polynomials with small integer coefficients. "
+            "Do not require the product rule, quotient "
+            "rule, chain rule, logarithmic functions, "
+            "exponential functions, or trigonometric "
+            "functions."
+        ),
+        "Medium": (
+            "Generate a derivative problem requiring "
+            "exactly one main derivative technique: "
+            "the product rule, quotient rule, or chain "
+            "rule. Vary which of these techniques is "
+            "used across generated problems. Keep the "
+            "functions simple and the algebra reasonable "
+            "by hand. Do not combine multiple major "
+            "derivative rules in the same problem."
+        ),
+        "Hard": (
+            "Generate a derivative problem requiring "
+            "exactly two main derivative techniques. "
+            "Examples include product plus chain, "
+            "quotient plus chain, or product plus "
+            "quotient. Keep the expression compact and "
+            "reasonable to differentiate by hand. "
+            "Use at most two main function factors. "
+            "Trigonometric or exponential functions may "
+            "be used, but avoid logarithms of composite "
+            "functions, deeply nested functions, and "
+            "expressions that require three or more "
+            "major derivative rules."
+        ),
+    }
+
+    return rubrics.get(
+        difficulty,
+        rubrics["Medium"],
+    )
+
 def generate_equation_candidate(
     course: str,
     difficulty: str,
@@ -166,6 +211,11 @@ def generate_derivative_candidate(
     course: str,
     difficulty: str,
 ):
+    difficulty_instructions = (
+        get_calculus_i_difficulty_instructions(
+            difficulty
+        )
+    )
     response = client.responses.parse(
         model="gpt-5.6-luna",
         input=[
@@ -189,7 +239,15 @@ def generate_derivative_candidate(
                     f"{difficulty.lower()}-difficulty "
                     "derivative problem. "
                     "The operation must be derivative. "
-                    "Use x as the variable."
+                    "Use x as the variable. "
+                    "The verification expression must be "
+                    "valid SymPy syntax and contain only "
+                    "the function being differentiated, "
+                    "not an equation or function definition. "
+                    "Keep the problem reasonable to solve "
+                    "by hand.\n\n"
+                    "Difficulty requirements:\n"
+                    f"{difficulty_instructions}"
                 ),
             },
         ],
