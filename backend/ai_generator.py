@@ -405,7 +405,8 @@ def generate_verified_equation_problem(
     course: str,
     difficulty: str,
     verifier,
-    max_attempts: int = 3,
+    duplicate_checker=None,
+    max_attempts: int = 5,
 ):
     for attempt in range(
         1,
@@ -416,13 +417,26 @@ def generate_verified_equation_problem(
             difficulty,
         )
 
-        if verifier(candidate):
-            return candidate
+        if not verifier(candidate):
+            print(
+                f"AI equation candidate "
+                f"failed verification "
+                f"(attempt {attempt}/{max_attempts})"
+            )
+            continue
 
-        print(
-            f"AI candidate failed verification "
-            f"(attempt {attempt}/{max_attempts})"
-        )
+        if (
+            duplicate_checker
+            and duplicate_checker(candidate)
+        ):
+            print(
+                f"AI equation candidate "
+                f"was a recent duplicate "
+                f"(attempt {attempt}/{max_attempts})"
+            )
+            continue
+
+        return candidate
 
     return None
 
@@ -430,7 +444,8 @@ def generate_verified_derivative_problem(
     course: str,
     difficulty: str,
     verifier,
-    max_attempts: int = 3,
+    duplicate_checker=None,
+    max_attempts: int = 5,
 ):
     for attempt in range(
         1,
@@ -440,15 +455,27 @@ def generate_verified_derivative_problem(
             course,
             difficulty,
         )
-        
-        if verifier(candidate):
-            return candidate
 
-        print(
-            f"AI derivative candidate failed "
-            f"verification "
-            f"(attempt {attempt}/{max_attempts})"
-        )
+        if not verifier(candidate):
+            print(
+                f"AI derivative candidate "
+                f"failed verification "
+                f"(attempt {attempt}/{max_attempts})"
+            )
+            continue
+
+        if (
+            duplicate_checker
+            and duplicate_checker(candidate)
+        ):
+            print(
+                f"AI derivative candidate "
+                f"was a recent duplicate "
+                f"(attempt {attempt}/{max_attempts})"
+            )
+            continue
+
+        return candidate
 
     return None
 
@@ -456,7 +483,8 @@ def generate_verified_definite_integral_problem(
     course: str,
     difficulty: str,
     verifier,
-    max_attempts: int = 3,
+    duplicate_checker=None,
+    max_attempts: int = 5,
 ):
     for attempt in range(
         1,
@@ -469,14 +497,26 @@ def generate_verified_definite_integral_problem(
             )
         )
 
-        if verifier(candidate):
-            return candidate
+        if not verifier(candidate):
+            print(
+                f"AI definite integral candidate "
+                f"failed verification "
+                f"(attempt {attempt}/{max_attempts})"
+            )
+            continue
 
-        print(
-            f"AI definite integral candidate failed "
-            f"verification "
-            f"(attempt {attempt}/{max_attempts})"
-        )
+        if (
+            duplicate_checker
+            and duplicate_checker(candidate)
+        ):
+            print(
+                f"AI definite integral candidate "
+                f"was a recent duplicate "
+                f"(attempt {attempt}/{max_attempts})"
+            )
+            continue
+
+        return candidate
 
     return None
 
@@ -484,7 +524,8 @@ def generate_verified_indefinite_integral_problem(
     course: str,
     difficulty: str,
     verifier,
-    max_attempts: int = 3,
+    duplicate_checker=None,
+    max_attempts: int = 5,
 ):
     for attempt in range(
         1,
@@ -497,13 +538,25 @@ def generate_verified_indefinite_integral_problem(
             )
         )
 
-        if verifier(candidate):
-            return candidate
+        if not verifier(candidate):
+            print(
+                f"AI indefinite integral candidate "
+                f"failed verification "
+                f"(attempt {attempt}/{max_attempts})"
+            )
+            continue
 
-        print(
-            f"AI indefinite integral candidate "
-            f"failed verification "
-            f"(attempt {attempt}/{max_attempts})"
-        )
+        if (
+            duplicate_checker
+            and duplicate_checker(candidate)
+        ):
+            print(
+                f"AI indefinite integral candidate "
+                f"was a recent duplicate "
+                f"(attempt {attempt}/{max_attempts})"
+            )
+            continue
+
+        return candidate
 
     return None

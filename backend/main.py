@@ -43,6 +43,9 @@ transformations = (
 
 generated_problems = {}
 calculus_ii_generation_count = 0
+recent_problem_keys = {}
+RECENT_PROBLEM_LIMIT = 5
+
 problem_bank = [
     {
         "id": 101,
@@ -152,6 +155,22 @@ class ProblemRequest(BaseModel):
 class PracticeAnswerRequest(BaseModel):
     problem_id: str
     student_answer: str
+
+def create_student_prompt(problem):
+    verification = problem.get("verification", {})
+    operation = verification.get("operation")
+
+    prompts = {
+        "solve-equation": "Solve the equation.",
+        "derivative": "Find the derivative.",
+        "definite-integral": "Evaluate the definite integral.",
+        "indefinite-integral": "Find the indefinite integral.",
+    }
+
+    return prompts.get(
+        operation,
+        problem.get("prompt", "Solve the problem."),
+    )
 
 def create_display_expression(problem):
     verification = problem.get("verification", {})
@@ -283,6 +302,87 @@ def check_indefinite_integral(
 
 def find_problem(problem_id: str):
     return generated_problems.get(problem_id)
+
+def get_problem_key(problem):
+    verification = problem.get("verification", {})
+    operation = verification.get("operation")
+
+    if operation == "solve-equation":
+        return (
+            operation,
+            verification["left_side"],
+            verification["right_side"],
+        )
+
+    if operation == "derivative":
+        return (
+            operation,
+            verification["expression"],
+        )
+
+    if operation == "definite-integral":
+        return (
+            operation,
+            verification["integrand"],
+            verification["lower_bound"],
+            verification["upper_bound"],
+        )
+
+    if operation == "indefinite-integral":
+        return (
+            operation,
+            verification["integrand"],
+        )
+
+    return None
+
+def is_recent_duplicate(
+    problem,
+    course,
+    difficulty,
+):
+    problem_key = get_problem_key(problem)
+
+    if problem_key is None:
+        return False
+
+    group_key = (
+        course,
+        difficulty,
+    )
+
+    recent_keys = recent_problem_keys.get(
+        group_key,
+        [],
+    )
+
+    return problem_key in recent_keys
+
+
+def remember_problem(
+    problem,
+    course,
+    difficulty,
+):
+    problem_key = get_problem_key(problem)
+
+    if problem_key is None:
+        return
+
+    group_key = (
+        course,
+        difficulty,
+    )
+
+    recent_keys = recent_problem_keys.setdefault(
+        group_key,
+        [],
+    )
+
+    recent_keys.append(problem_key)
+
+    if len(recent_keys) > RECENT_PROBLEM_LIMIT:
+        recent_keys.pop(0)
 
 def verify_candidate_problem(problem):
     try:
@@ -640,10 +740,22 @@ def generate_problem(request: ProblemRequest):
                 course=request.course,
                 difficulty=request.difficulty,
                 verifier=verify_candidate_problem,
+                duplicate_checker=lambda problem: (
+                    is_recent_duplicate(
+                        problem,
+                        request.course,
+                        request.difficulty,
+                    )
+                ),
             )
         )
 
         if ai_problem:
+            remember_problem(
+                ai_problem,
+                request.course,
+                request.difficulty,
+            )
             problem_id = str(uuid.uuid4())
 
             generated_problems[
@@ -655,7 +767,7 @@ def generate_problem(request: ProblemRequest):
                 "course": request.course,
                 "topic": ai_problem["topic"],
                 "difficulty": request.difficulty,
-                "prompt": ai_problem["prompt"],
+                "prompt": create_student_prompt(ai_problem),
                 "expression": ai_problem["expression"],
                 "display_expression": create_display_expression(
                     ai_problem
@@ -670,22 +782,32 @@ def generate_problem(request: ProblemRequest):
                 course=request.course,
                 difficulty=request.difficulty,
                 verifier=verify_candidate_problem,
+                duplicate_checker=lambda problem: (
+                    is_recent_duplicate(
+                        problem,
+                        request.course,
+                        request.difficulty,
+                    )
+                ),
             )
         )
 
         if ai_problem:
-            problem_id = str(uuid.uuid4())
+            remember_problem(
+                ai_problem,
+                request.course,
+                request.difficulty,
+            )
 
-            generated_problems[
-                problem_id
-            ] = ai_problem
+            problem_id = str(uuid.uuid4())
+            generated_problems[problem_id] = ai_problem
 
             return {
                 "id": problem_id,
                 "course": request.course,
                 "topic": ai_problem["topic"],
                 "difficulty": request.difficulty,
-                "prompt": ai_problem["prompt"],
+                "prompt": create_student_prompt(ai_problem),
                 "expression": ai_problem["expression"],
                 "display_expression": create_display_expression(
                     ai_problem
@@ -703,6 +825,13 @@ def generate_problem(request: ProblemRequest):
                     course=request.course,
                     difficulty=request.difficulty,
                     verifier=verify_candidate_problem,
+                    duplicate_checker=lambda problem: (
+                        is_recent_duplicate(
+                            problem,
+                            request.course,
+                            request.difficulty,
+                        )
+                    ),
                 )
             )
         else:
@@ -711,10 +840,22 @@ def generate_problem(request: ProblemRequest):
                     course=request.course,
                     difficulty=request.difficulty,
                     verifier=verify_candidate_problem,
+                    duplicate_checker=lambda problem: (
+                        is_recent_duplicate(
+                            problem,
+                            request.course,
+                            request.difficulty,
+                        )
+                    ),
                 )
             )
 
         if ai_problem:
+            remember_problem(
+                ai_problem,
+                request.course,
+                request.difficulty,
+            )
             calculus_ii_generation_count += 1
 
             problem_id = str(uuid.uuid4())
@@ -728,7 +869,7 @@ def generate_problem(request: ProblemRequest):
                 "course": request.course,
                 "topic": ai_problem["topic"],
                 "difficulty": request.difficulty,
-                "prompt": ai_problem["prompt"],
+                "prompt": create_student_prompt(ai_problem),
                 "expression": ai_problem["expression"],
                 "display_expression": create_display_expression(
                     ai_problem
