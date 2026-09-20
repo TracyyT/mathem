@@ -44,7 +44,7 @@ transformations = (
 generated_problems = {}
 calculus_ii_generation_count = 0
 recent_problem_keys = {}
-RECENT_PROBLEM_LIMIT = 5
+RECENT_PROBLEM_LIMIT = 10
 
 problem_bank = [
     {

@@ -76,6 +76,54 @@ class IndefiniteIntegralProblemCandidate(BaseModel):
     hint: str
     verification: IndefiniteIntegralVerification
 
+ALGEBRA_I_EASY_STRUCTURES = [
+    (
+        "addition or subtraction",
+        "Use an equation of the form x + a = b "
+        "or x - a = b. Use small integers. "
+        "Vary the constants and vary between "
+        "addition and subtraction."
+    ),
+    (
+        "multiplication",
+        "Use an equation of the form a*x = b. "
+        "Choose small integers so the solution "
+        "is an integer. Vary the coefficient "
+        "and solution across generated problems."
+    ),
+    (
+        "division",
+        "Use an equation of the form x/a = b. "
+        "Choose small nonzero integers so the "
+        "solution is an integer. Vary both the "
+        "divisor and solution across generated "
+        "problems."
+    ),
+    (
+        "two-step",
+        "Use an equation of the form a*x + b = c "
+        "or a*x - b = c. Use small integers and "
+        "make the solution an integer. Vary the "
+        "coefficient, constants, and whether the "
+        "equation uses addition or subtraction."
+    ),
+]
+algebra_i_easy_structure_index = 0
+
+
+def get_next_algebra_i_easy_structure():
+    global algebra_i_easy_structure_index
+
+    structure = ALGEBRA_I_EASY_STRUCTURES[
+        algebra_i_easy_structure_index
+    ]
+
+    algebra_i_easy_structure_index = (
+        algebra_i_easy_structure_index + 1
+    ) % len(ALGEBRA_I_EASY_STRUCTURES)
+
+    return structure
+
 def get_algebra_difficulty_instructions(
     difficulty: str,
 ):
@@ -83,10 +131,11 @@ def get_algebra_difficulty_instructions(
         "Easy": (
             "Generate a one-step or two-step linear "
             "equation with exactly one real solution. "
-            "Use integer coefficients and keep the "
-            "arithmetic simple. Do not use fractions, "
+            "Use small integer coefficients and keep "
+            "the arithmetic simple. Do not use "
             "parentheses, quadratics, or variables on "
-            "both sides."
+            "both sides. The solution should be an "
+            "integer."
         ),
         "Medium": (
             "Generate a multi-step linear equation "
@@ -117,19 +166,67 @@ def get_algebra_difficulty_instructions(
         rubrics["Medium"],
     )
 
+CALCULUS_I_EASY_STRUCTURES = [
+    (
+        "polynomial",
+        "Use a polynomial with 3 to 5 terms and "
+        "small integer coefficients."
+    ),
+    (
+        "negative powers",
+        "Include at least one negative integer power "
+        "of x, such as x**-2 or x**-3. Keep the "
+        "rest of the expression simple."
+    ),
+    (
+        "fractional powers",
+        "Include at least one fractional power of x, "
+        "such as x**(1/2) or x**(3/2). Keep the "
+        "rest of the expression simple."
+    ),
+    (
+        "basic trigonometric",
+        "Use a simple sum or difference containing "
+        "sin(x) or cos(x), possibly with a basic "
+        "polynomial term. Do not place another "
+        "function inside sin or cos."
+    ),
+    (
+        "basic exponential",
+        "Use a simple sum or difference containing "
+        "exp(x), possibly with a basic polynomial "
+        "term. Do not use exp of a composite "
+        "expression."
+    ),
+]
+
+calculus_i_easy_structure_index = 0
+def get_next_calculus_i_easy_structure():
+    global calculus_i_easy_structure_index
+
+    structure = CALCULUS_I_EASY_STRUCTURES[
+        calculus_i_easy_structure_index
+    ]
+
+    calculus_i_easy_structure_index = (
+        calculus_i_easy_structure_index + 1
+    ) % len(CALCULUS_I_EASY_STRUCTURES)
+
+    return structure
+
 def get_calculus_i_difficulty_instructions(
     difficulty: str,
 ):
     rubrics = {
         "Easy": (
             "Generate a basic derivative problem using "
-            "the power rule, constant multiple rule, "
-            "and/or sum and difference rules. Use "
-            "polynomials with small integer coefficients. "
+            "direct differentiation rules only: the power "
+            "rule, constant multiple rule, sum and "
+            "difference rules, or basic derivatives of "
+            "sin(x), cos(x), and exp(x). Keep coefficients "
+            "small and the expression reasonable by hand. "
             "Do not require the product rule, quotient "
-            "rule, chain rule, logarithmic functions, "
-            "exponential functions, or trigonometric "
-            "functions."
+            "rule, or chain rule."
         ),
         "Medium": (
             "Generate a derivative problem requiring "
@@ -212,6 +309,20 @@ def generate_equation_candidate(
             difficulty
         )
     )
+
+    easy_structure_instructions = ""
+
+    if difficulty == "Easy":
+        structure_name, structure_instructions = (
+            get_next_algebra_i_easy_structure()
+        )
+
+        easy_structure_instructions = (
+            "\n\nEasy problem structure:\n"
+            f"{structure_name}\n"
+            f"{structure_instructions}"
+        )
+        
     response = client.responses.parse(
         model="gpt-5.6-luna",
         input=[
@@ -240,6 +351,7 @@ def generate_equation_candidate(
                     "by hand.\n\n"
                     "Difficulty requirements:\n"
                     f"{difficulty_instructions}"
+                    f"{easy_structure_instructions}"
                 ),
             },
         ],
@@ -257,6 +369,19 @@ def generate_derivative_candidate(
             difficulty
         )
     )
+    easy_structure_instructions = ""
+
+    if difficulty == "Easy":
+        structure_name, structure_instructions = (
+            get_next_calculus_i_easy_structure()
+        )
+
+        easy_structure_instructions = (
+            "\n\nEasy problem structure:\n"
+            f"{structure_name}\n"
+            f"{structure_instructions}"
+        )
+
     response = client.responses.parse(
         model="gpt-5.6-luna",
         input=[
@@ -289,6 +414,7 @@ def generate_derivative_candidate(
                     "by hand.\n\n"
                     "Difficulty requirements:\n"
                     f"{difficulty_instructions}"
+                    f"{easy_structure_instructions}"
                 ),
             },
         ],
