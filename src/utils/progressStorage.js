@@ -41,3 +41,12 @@ export function isTodayCompleted() {
 export function getTodayDateString() {
   return getTodayDate()
 }
+
+export function clearNextDifficultyChoice() {
+  const progress = getProgress()
+
+  saveProgress({
+    ...progress,
+    nextDifficultyChoice: 'Same',
+  })
+}

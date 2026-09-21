@@ -4,6 +4,7 @@ import {
   saveProgress,
   isTodayCompleted,
   getTodayDateString,
+  clearNextDifficultyChoice,
 } from '../utils/progressStorage'
 import { getSettings } from '../utils/settingsStorage'
 import { isScheduledForToday } from '../utils/scheduleUtils'
@@ -17,6 +18,9 @@ import {
   saveTodayProblem,
   clearTodayProblem,
 } from '../utils/todayProblemStorage'
+import {
+  getNextDifficulty,
+} from '../utils/difficultyUtils'
 
 function TodayPage() {
   const [answer, setAnswer] = useState('')
@@ -39,7 +43,13 @@ function TodayPage() {
   const settings = getSettings()
 
   const selectedCourse = settings.course
-  const selectedDifficulty = settings.difficulty
+
+  const savedProgress = getProgress()
+
+  const selectedDifficulty = getNextDifficulty(
+    settings.difficulty,
+    savedProgress.nextDifficultyChoice || 'Same',
+  )
   const scheduledToday = isScheduledForToday(settings)
 
   const loadTodayProblem = async () => {
@@ -54,6 +64,8 @@ function TodayPage() {
 
     saveTodayProblem(generatedProblem)
     setProblem(generatedProblem)
+
+    clearNextDifficultyChoice()
     } catch (error) {
       console.error(
         'Failed to generate today problem:',
