@@ -7,7 +7,10 @@ import {
   clearNextDifficultyChoice,
 } from '../utils/progressStorage'
 import { getSettings } from '../utils/settingsStorage'
-import { isScheduledForToday } from '../utils/scheduleUtils'
+import {
+  isScheduledForToday,
+  getNextStreak,
+} from '../utils/scheduleUtils'
 import {
   checkGeneratedAnswer,
   generateProblem,
@@ -342,8 +345,12 @@ function TodayPage() {
       const alreadyCompletedToday = isTodayCompleted()
 
       const updatedStreak = alreadyCompletedToday
-          ? currentProgress.streak
-          : currentProgress.streak + 1
+        ? currentProgress.streak
+        : getNextStreak(
+            settings,
+            currentProgress.streak,
+            currentProgress.lastCompletedDate,
+          )
 
       const updatedProgress = {
           ...currentProgress,
