@@ -690,7 +690,7 @@ def check_generated_answer(
     if not problem:
         return {
             "correct": False,
-            "error": "Problem not found."
+            "error": "problem_not_found"
         }
 
     try:

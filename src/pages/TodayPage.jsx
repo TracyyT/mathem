@@ -93,10 +93,27 @@ function TodayPage() {
         answer,
       )
 
+      if (data.error === 'problem_not_found') {
+        clearTodayProblem()
+        setProblem(null)
+        setAnswer('')
+        setResult(null)
+
+        await loadTodayProblem()
+
+        setCheckError(
+          'Your MathEm expired after the server restarted, ' +
+          'so we prepared a new one.',
+        )
+
+        return
+      }
+
       if (data.error) {
         setResult(null)
         setCheckError(
-          'MathEm could not understand that answer. Try entering it another way.',
+          'MathEm could not understand that answer. ' +
+          'Try entering it another way.',
         )
         return
       }
