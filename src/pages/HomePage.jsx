@@ -4,10 +4,12 @@ import { useNavigate } from 'react-router-dom'
 import {
   getSettings,
   saveSettings,
+  hasScheduleChanged,
 } from '../utils/settingsStorage'
 
 import {
   getProgress,
+  saveProgress,
   isTodayCompleted,
 } from '../utils/progressStorage'
 
@@ -31,6 +33,11 @@ function HomePage() {
     () => getSettings().scheduleDays,
   )
 
+  const [selectedSchedule, setSelectedSchedule] =
+    useState(
+      () => getSettings().schedule,
+    )
+
   const weekDays = [
     'Sunday',
     'Monday',
@@ -40,6 +47,29 @@ function HomePage() {
     'Friday',
     'Saturday',
   ]
+
+  const saveSchedule = (updatedSettings) => {
+    const oldSettings = getSettings()
+
+    if (
+      hasScheduleChanged(
+        oldSettings,
+        updatedSettings,
+      )
+    ) {
+      const currentProgress = getProgress()
+
+      saveProgress({
+        ...currentProgress,
+        streak: 0,
+        lastCompletedDate: null,
+      })
+    }
+
+    setSettings(updatedSettings)
+    saveSettings(updatedSettings)
+    setEditingSetting(null)
+  }
 
   const updateSetting = (key, value) => {
     const updatedSettings = {
@@ -87,7 +117,9 @@ function HomePage() {
 
   const toggleScheduleDay = (day) => {
     const requiredDays =
-      settings.schedule === '3x per week' ? 3 : 1
+      selectedSchedule === '3x per week'
+        ? 3
+        : 1
 
     if (selectedScheduleDays.includes(day)) {
       setSelectedScheduleDays(
@@ -210,6 +242,8 @@ function HomePage() {
             <button
               className="card-action"
               onClick={() => {
+                setSelectedSchedule(settings.schedule)
+
                 setSelectedScheduleDays(
                   settings.scheduleDays,
                 )
@@ -291,7 +325,7 @@ function HomePage() {
                       key={option}
                       type="button"
                       className={
-                        settings.schedule === option
+                        selectedSchedule === option
                           ? 'selected'
                           : ''
                       }
@@ -303,15 +337,13 @@ function HomePage() {
                             scheduleDays: weekDays,
                           }
 
-                          setSettings(updatedSettings)
-                          saveSettings(updatedSettings)
-                          setEditingSetting(null)
-                        } else {
-                          setSettings({
-                            ...settings,
-                            schedule: option,
-                          })
+                          saveSchedule(updatedSettings)
+                          return
+                        }
 
+                        setSelectedSchedule(option)
+
+                        if (option !== selectedSchedule) {
                           setSelectedScheduleDays([])
                         }
                       }}
@@ -323,10 +355,10 @@ function HomePage() {
             </div>
 
             {editingSetting === 'schedule' &&
-              settings.schedule !== 'Daily' && (
+              selectedSchedule !== 'Daily' && (
                 <div className="schedule-day-picker">
                   <p className="schedule-day-label">
-                    {settings.schedule === '3x per week'
+                    {selectedSchedule === '3x per week'
                       ? 'Choose 3 days'
                       : 'Choose 1 day'}
                   </p>
@@ -354,19 +386,17 @@ function HomePage() {
                     type="button"
                     className="primary-button schedule-save-button"
                     disabled={
-                      settings.schedule === '3x per week'
+                      selectedSchedule === '3x per week'
                         ? selectedScheduleDays.length !== 3
                         : selectedScheduleDays.length !== 1
                     }
                     onClick={() => {
                       const updatedSettings = {
-                        ...settings,
-                        scheduleDays: selectedScheduleDays,
-                      }
-
-                      setSettings(updatedSettings)
-                      saveSettings(updatedSettings)
-                      setEditingSetting(null)
+                      ...settings,
+                      schedule: selectedSchedule,
+                      scheduleDays: selectedScheduleDays,
+                    }
+                      saveSchedule(updatedSettings)
                     }}
                   >
                     Save schedule
@@ -378,9 +408,16 @@ function HomePage() {
               type="button"
               className="setting-editor-cancel"
               onClick={() => {
-                setSettings(getSettings())
+                const savedSettings = getSettings()
+
+                setSettings(savedSettings)
+
+                setSelectedSchedule(
+                  savedSettings.schedule,
+                )
+
                 setSelectedScheduleDays(
-                  getSettings().scheduleDays,
+                  savedSettings.scheduleDays,
                 )
 
                 setEditingSetting(null)
