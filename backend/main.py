@@ -143,16 +143,11 @@ problem_bank = [
     },
 ]
 
-class AnswerRequest(BaseModel):
-    student_answer: str
-    correct_answer: str
-    answer_type: str = "expression"
-
 class ProblemRequest(BaseModel):
     course: str
     difficulty: str
 
-class PracticeAnswerRequest(BaseModel):
+class GeneratedAnswerRequest(BaseModel):
     problem_id: str
     student_answer: str
 
@@ -656,59 +651,10 @@ def root():
     return {
         "message": "MathEm API is running"
     }
-
-
-
-@app.post("/check-answer")
-def check_answer(request: AnswerRequest):
-    try:
-        if request.answer_type == "solution-set":
-            student = parse_solution_set(
-                request.student_answer
-            )
-
-            correct = parse_solution_set(
-                request.correct_answer
-            )
-
-            return {
-                "correct": student == correct
-            }
-        if request.answer_type == "indefinite-integral":
-            is_correct = check_indefinite_integral(
-                request.student_answer,
-                request.correct_answer,
-            )
-
-            return {
-                "correct": bool(is_correct)
-        } 
-        
-        student = parse_math(
-            request.student_answer
-        )
-
-        correct = parse_math(
-            request.correct_answer
-        )
-
-        is_correct = (
-            sp.simplify(student - correct) == 0
-        )
-
-        return {
-            "correct": bool(is_correct)
-        }
-
-    except Exception:
-        return {
-            "correct": False,
-            "error": "Could not understand the math expression."
-        }
-    
+   
 @app.post("/check-generated-answer")
 def check_generated_answer(
-    request: PracticeAnswerRequest
+    request: GeneratedAnswerRequest
 ):
     problem = find_problem(request.problem_id)
 
