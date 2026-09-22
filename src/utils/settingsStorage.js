@@ -20,6 +20,35 @@ export function getSettings() {
   }
 }
 
+export function hasScheduleChanged(
+  oldSettings,
+  newSettings,
+) {
+  if (
+    oldSettings.schedule !==
+    newSettings.schedule
+  ) {
+    return true
+  }
+
+  if (newSettings.schedule === 'Daily') {
+    return false
+  }
+
+  const oldDays = [
+    ...(oldSettings.scheduleDays || []),
+  ].sort()
+
+  const newDays = [
+    ...(newSettings.scheduleDays || []),
+  ].sort()
+
+  return (
+    JSON.stringify(oldDays) !==
+    JSON.stringify(newDays)
+  )
+}
+
 export function saveSettings(settings) {
   localStorage.setItem(
     SETTINGS_KEY,
