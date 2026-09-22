@@ -247,6 +247,31 @@ def parse_math(expression: str):
         .replace("×", "*")
         .replace("÷", "/")
         .replace(" ", "")
+        .replace("π", "pi")
+    )
+
+    expression = re.sub(
+        r"√(\d+)",
+        r"sqrt(\1)",
+        expression,
+    )
+
+    expression = re.sub(
+        r"([0-9a-zA-Z\)])sin\(",
+        r"\1*sin(",
+        expression,
+    )
+
+    expression = re.sub(
+        r"([0-9a-zA-Z\)])cos\(",
+        r"\1*cos(",
+        expression,
+    )
+
+    expression = re.sub(
+        r"([0-9a-zA-Z\)])log\(",
+        r"\1*log(",
+        expression,
     )
 
     expression = re.sub(
