@@ -1,3 +1,7 @@
+import os
+import re
+import sympy as sp
+import uuid
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
@@ -7,9 +11,6 @@ from ai_generator import (
     generate_verified_definite_integral_problem,
     generate_verified_indefinite_integral_problem,
 )
-import re
-import sympy as sp
-import uuid
 
 from sympy.parsing.sympy_parser import (
     parse_expr,
@@ -21,11 +22,18 @@ from sympy.parsing.sympy_parser import (
 
 app = FastAPI()
 
+FRONTEND_URL = os.getenv(
+    "FRONTEND_URL",
+    "https://tracyyt.github.io",
+)
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
         "http://localhost:5173",
         "http://127.0.0.1:5173",
+        FRONTEND_URL,
+
     ],
     allow_credentials=True,
     allow_methods=["*"],

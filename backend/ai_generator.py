@@ -8,8 +8,15 @@ from pydantic import BaseModel
 
 load_dotenv()
 
+OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
+
+if not OPENAI_API_KEY:
+    raise RuntimeError(
+        "OPENAI_API_KEY environment variable is not set."
+    )
+
 client = OpenAI(
-    api_key=os.getenv("OPENAI_API_KEY")
+    api_key=OPENAI_API_KEY
 )
 
 
